@@ -40,7 +40,6 @@ const Home = () => {
           left: "calc(50% - 20px)",
         }}
       />
-      {/* )} */}
       {images && images.length > 0 && (
         <Swiper
           style={{ transform: "rotate(90deg)" }}
@@ -62,7 +61,11 @@ const Home = () => {
               <SwiperSlide key={key}>
                 <Box
                   sx={{
-                    backgroundImage: `url(${i})`,
+                    backgroundImage: `url(${i
+                      .split(
+                        "https://s3.eu-west-2.amazonaws.com/generated.ai.mgxs.co/mem/"
+                      )
+                      .join("https://generated-ai.mgxs.co/")})`,
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                     height: `${Math.round(size / ratio)}vw`,
