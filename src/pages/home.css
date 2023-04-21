@@ -1,0 +1,24 @@
+body {
+  overflow: hidden;
+}
+
+.swiper {
+  width: 100vw;
+  height: 100vh;
+}
+
+.swiper-slide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.swiper-slide div {
+  transform: rotate(-90deg);
+  transition: all 0.3s ease-out;
+  filter: blur(2px) brightness(0.3);
+}
+
+.swiper-slide-active div {
+  filter: grayscale(0);
+}
