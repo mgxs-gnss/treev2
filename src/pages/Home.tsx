@@ -28,7 +28,10 @@ const Home = () => {
   }, [setImages]);
 
   const size = 80;
-  const ratio = 1152 / 1568;
+  const w = 1152;
+  const h = 1568;
+  const perc = 0.3;
+  const ratio = w / h;
 
   return (
     <>
@@ -70,6 +73,8 @@ const Home = () => {
                     backgroundPosition: "center",
                     height: `${Math.round(size / ratio)}vw`,
                     width: `${size}vw`,
+                    maxWidth: w * perc,
+                    maxHeight: h * perc,
                   }}
                 />
               </SwiperSlide>
