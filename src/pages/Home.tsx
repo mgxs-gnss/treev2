@@ -35,14 +35,14 @@ const Home = () => {
 
   return (
     <>
-      {/* {!images && ( */}
+      {!images && 
       <CircularProgress
         sx={{
           position: "absolute",
           top: "calc(50% - 20px)",
           left: "calc(50% - 20px)",
         }}
-      />
+      />}
       {images && images.length > 0 && (
         <Swiper
           style={{ transform: "rotate(90deg)" }}
