@@ -47,7 +47,6 @@ const Home = () => {
         <Swiper
           style={{ transform: "rotate(90deg)" }}
           effect={"cards"}
-          grabCursor
           centeredSlides
           freeMode
           cardsEffect={{
