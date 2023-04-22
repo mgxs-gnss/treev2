@@ -70,7 +70,7 @@ src={i.split("https://s3.eu-west-2.amazonaws.com/generated.ai.mgxs.co/mem/")
 sx={{
                   
                     height: `${Math.round(size / ratio)}vw`,
-                    width: `${size}vw`
+                    width: `${size}vw`,
                     maxWidth: w * perc,
                     maxHeight: h * perc,
                   }}
