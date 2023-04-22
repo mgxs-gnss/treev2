@@ -63,16 +63,17 @@ const Home = () => {
             images?.map((i, key) => (
               <SwiperSlide key={key}>
                 <Box
-                  sx={{
-                    backgroundImage: `url(${i
+component="img"
+loading="lazy"
+src={i
                       .split(
                         "https://s3.eu-west-2.amazonaws.com/generated.ai.mgxs.co/mem/"
                       )
-                      .join("https://generated-ai.mgxs.co/")})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
+                      .join("https://generated-ai.mgxs.co/")})}
+sx={{
+                  
                     height: `${Math.round(size / ratio)}vw`,
-                    width: `${size}vw`,
+                    width: `${size}vw`
                     maxWidth: w * perc,
                     maxHeight: h * perc,
                   }}
