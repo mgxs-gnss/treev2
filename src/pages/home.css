@@ -13,12 +13,12 @@ body {
   justify-content: center;
 }
 
-.swiper-slide div {
+.swiper-slide img {
   transform: rotate(-90deg);
   transition: all 0.3s ease-out;
   filter: blur(2px) brightness(0.3);
 }
 
-.swiper-slide-active div {
+.swiper-slide-active img {
   filter: grayscale(0);
 }
