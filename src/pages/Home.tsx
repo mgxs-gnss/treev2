@@ -1,54 +1,58 @@
 import { Box, CircularProgress, Typography } from "@mui/material";
-import { WheelEvent, useEffect, useState } from "react";
+import { WheelEvent, useState } from "react";
 import { useSwipeable } from "react-swipeable";
+import { useInterval, useMemImages } from "../hooks";
 
 let wheelTimer: ReturnType<typeof setTimeout> | undefined;
 
+const OFFSET = 30;
+
 const Home = () => {
-  const [images, setImages] = useState<string[]>([]);
   const [current, setCurrent] = useState(0);
-  const [loading, setLoading] = useState<boolean>(false);
+  const { loading, images } = useMemImages();
+
   const [wheeling, setWheeling] = useState(false);
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        setLoading(true);
-        const images = await (
-          await fetch("https://api.mgxs.co/mem/list")
-        ).json();
-        if (Array.isArray(images)) {
-          setImages(images.filter((i) => i.indexOf(".jpg") > -1));
-        }
-      } catch (e) {
-        console.log(e);
-      } finally {
-        setLoading(false);
+  const onNext = () => {
+    clearInterval();
+    setCurrent((current) => {
+      let next = current + 1;
+      if (next > images.length - 1) {
+        next = 0;
       }
-    };
 
-    load();
-  }, [setImages]);
+      autoPlay();
+      return next;
+    });
+  };
+
+  const onPrev = () => {
+    clearInterval();
+    setCurrent((current) => {
+      let next = current - 1;
+      if (next < 0) {
+        next = images.length - 1;
+      }
+      autoPlay();
+      return next;
+    });
+  };
+
+  const { autoPlay, clearInterval } = useInterval({ callback: onNext });
 
   const size = 80;
   const w = 1152;
   const h = 1568;
-  const perc = 0.3;
+  const perc = 0.5;
   const ratio = w / h;
-
-  const onNext = () => {
-    setCurrent(Math.min(current + 1, images.length - 1));
-  };
-
-  const onPrev = () => {
-    setCurrent(Math.max(current - 1, 0));
-  };
 
   const onWheel = (event: WheelEvent) => {
     if (!wheeling) {
       if (event.deltaY > 0) {
+        clearInterval();
         onNext();
       } else if (event.deltaY < 0) {
+        clearInterval();
         onPrev();
       }
 
@@ -62,7 +66,7 @@ const Home = () => {
     wheelTimer = setTimeout(() => {
       setWheeling(false);
       wheelTimer = undefined;
-    }, 25); // Replace with your desired debounce delay
+    }, 35); // Replace with your desired debounce delay
   };
 
   const handlers = useSwipeable({
@@ -71,8 +75,6 @@ const Home = () => {
     onSwipedLeft: onNext,
     onSwipedRight: onPrev,
   });
-
-  const OFFSET = 20;
 
   return (
     <Box
@@ -113,29 +115,26 @@ const Home = () => {
           component="img"
           loading="lazy"
           data-active={key === current}
-          src={i
-            .split(
-              "https://s3.eu-west-2.amazonaws.com/generated.ai.mgxs.co/mem/"
-            )
-            .join("https://generated-ai.mgxs.co/")}
+          src={i}
           sx={{
             position: "fixed",
-            top: "50%",
+            top: "60%",
             left: "50%",
+            pointerEvents: "none",
             transformOrigin: "center",
-            transform: `perspective(${10000}px) translate(-50%, calc(-50% + ${
+            transform: `perspective(${20000}px) translate(-50%, calc(-50% + ${
               (key - current) * OFFSET
             }px)) scale(${
               key === current
                 ? 1
-                : 1 - Math.abs(key - current) / (images.length * 2)
+                : 1 - Math.abs(key - current) / (images.length * 1.2)
             })`,
             height: `${Math.round(size / ratio)}vw`,
             width: `${size}vw`,
             maxWidth: w * perc,
             maxHeight: h * perc,
             transition: "all .3s ease-in-out",
-            filter: `brightness(${key === current ? 1 : 0.2}) blur(${
+            filter: `brightness(${key === current ? 1 : 0.25}) blur(${
               key === current ? 0 : `${5}px`
             })`,
             zIndex:
