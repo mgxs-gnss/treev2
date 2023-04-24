@@ -90,7 +90,7 @@ const Home = () => {
       <Typography
         variant="h6"
         textAlign="center"
-        p={6}
+        p={3}
         position="relative"
         zIndex={10000}
       >
