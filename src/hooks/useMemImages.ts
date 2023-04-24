@@ -12,16 +12,7 @@ const useMemImages = () => {
           await fetch("https://api.mgxs.co/mem/list")
         ).json();
         if (Array.isArray(images)) {
-          setImages(
-            images
-              .filter((i) => i.indexOf(".jpg") > -1)
-              .map((i) =>
-                i.replace(
-                  "https://s3.eu-west-2.amazonaws.com/generated.ai.mgxs.co/mem/",
-                  "https://generated-ai.mgxs.co/"
-                )
-              )
-          );
+          setImages(images.filter((i) => i.indexOf(".jpg") > -1));
         }
       } catch (e) {
         console.log(e);
