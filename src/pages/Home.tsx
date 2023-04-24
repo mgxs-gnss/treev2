@@ -85,7 +85,7 @@ const Home = () => {
         position: "fixed",
       }}
     >
-      <Typography variant="h6" textAlign="center" p={6}>
+      <Typography variant="h6" textAlign="center" p={6} zIndex={10000}>
         <Typography color="primary" component="b" variant="h6" fontWeight={800}>
           {images.length}
         </Typography>{" "}
