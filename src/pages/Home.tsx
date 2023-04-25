@@ -43,7 +43,7 @@ const Home = () => {
   const size = 80;
   const w = 1152;
   const h = 1568;
-  const perc = 0.5;
+  const perc = 0.4;
   const ratio = w / h;
 
   const onWheel = (event: WheelEvent) => {
@@ -76,10 +76,12 @@ const Home = () => {
     onSwipedRight: onPrev,
   });
 
+  const isHome = new URLSearchParams(window.location.search).get("home");
+
   return (
     <Box
       {...handlers}
-      onWheel={onWheel}
+      onWheel={isHome ? undefined : onWheel}
       sx={{
         overflow: "hidden",
         width: "100vw",
@@ -87,18 +89,27 @@ const Home = () => {
         position: "fixed",
       }}
     >
-      <Typography
-        variant="h6"
-        textAlign="center"
-        p={3}
-        position="relative"
-        zIndex={10000}
+      <Box
+        sx={{
+          position: "relative",
+          textAlign: "center",
+          zIndex: 10000,
+          backgroundImage:
+            "linear-gradient(180deg, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%)",
+        }}
       >
-        <Typography color="primary" component="b" variant="h6" fontWeight={800}>
-          {images.length}
-        </Typography>{" "}
-        registered in the Memory Tree until now!
-      </Typography>
+        <Typography variant="h6" p={3} position="relative">
+          <Typography
+            color="primary"
+            component="b"
+            variant="h6"
+            fontWeight={800}
+          >
+            {images.length}
+          </Typography>{" "}
+          registered in the Memory Tree until now!
+        </Typography>
+      </Box>
 
       {loading && (
         <CircularProgress
@@ -116,30 +127,45 @@ const Home = () => {
           loading="lazy"
           data-active={key === current}
           src={i}
-          sx={{
-            position: "fixed",
-            top: "60%",
-            left: "50%",
-            pointerEvents: "none",
-            transformOrigin: "center",
-            transform: `perspective(${20000}px) translate(-50%, calc(-50% + ${
-              (key - current) * OFFSET
-            }px)) scale(${
-              key === current
-                ? 1
-                : 1 - Math.abs(key - current) / (images.length * 1.2)
-            })`,
-            height: `${Math.round(size / ratio)}vw`,
-            width: `${size}vw`,
-            maxWidth: w * perc,
-            maxHeight: h * perc,
-            transition: "all .3s ease-in-out",
-            filter: `brightness(${key === current ? 1 : 0.25}) blur(${
-              key === current ? 0 : `${5}px`
-            })`,
-            zIndex:
-              current === key ? images.length : images.length - current - key,
-          }}
+          sx={
+            isHome
+              ? {
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  transition: "all .3s ease-in-out",
+                  opacity: key === current ? "100%" : 0,
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                }
+              : {
+                  position: "fixed",
+                  top: "60%",
+                  left: "50%",
+                  pointerEvents: "none",
+                  transformOrigin: "center",
+                  transform: `perspective(${20000}px) translate(-50%, calc(-50% + ${
+                    (key - current) * OFFSET
+                  }px)) scale(${
+                    key === current
+                      ? 1
+                      : 1 - Math.abs(key - current) / (images.length * 1.2)
+                  })`,
+                  height: `${Math.round(size / ratio)}vw`,
+                  width: `${size}vw`,
+                  maxWidth: w * perc,
+                  maxHeight: h * perc,
+                  transition: "all .3s ease-in-out",
+                  filter: `brightness(${key === current ? 1 : 0.25}) blur(${
+                    key === current ? 0 : `${5}px`
+                  })`,
+                  zIndex:
+                    current === key
+                      ? images.length
+                      : images.length - current - key,
+                }
+          }
         />
       ))}
     </Box>
