@@ -1,26 +1,27 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 
 let autoPlayInterval: ReturnType<typeof setTimeout> | undefined;
 
 interface UseInterval {
   callback: Function;
   interval?: number;
+  active?: boolean;
 }
 
-const useInterval = ({ callback, interval = 2000 }: UseInterval) => {
+const useInterval = ({ active, callback, interval = 2000 }: UseInterval) => {
   const clearInterval = () => {
     clearTimeout(autoPlayInterval);
   };
 
-  const autoPlay = () => {
+  const autoPlay = useCallback(() => {
     clearTimeout(autoPlayInterval);
     autoPlayInterval = setTimeout(() => callback(), interval);
-  };
+  }, [callback, interval]);
 
   useEffect(() => {
-    autoPlay();
+    active && autoPlay();
     return () => clearInterval();
-  });
+  }, [active, autoPlay]);
 
   return { autoPlay, clearInterval };
 };
