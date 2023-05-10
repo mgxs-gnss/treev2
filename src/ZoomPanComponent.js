@@ -91,7 +91,7 @@ useEffect(() => {
             <TransformComponent>
               <div style={{ display: 'grid', gridTemplateColumns: `repeat(16, 1fr)`, gap: '20px', width: '100%', height: '100vh', backgroundColor: 'black' }}>
                 {images.map((src, index) => (
-                  <img key={index} src={src} alt={`Example ${index}`} style={{ objectFit: 'cover', width: '100%' }} ref={el => imageRefs.current[index] = el}/>
+                  <img loading="lazy" key={index} src={src} alt={`Example ${index}`} style={{ objectFit: 'cover', width: '100%' }} ref={el => imageRefs.current[index] = el}/>
                 ))}
               </div>
             </TransformComponent>
