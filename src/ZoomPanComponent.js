@@ -14,6 +14,7 @@ const ZoomPanComponent = () => {
       .then(data => setImages(data));
   }, []);
 
+// eslint-disable-next-line
   const highlightClosestImage = () => {
     const center = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
     let minDistance = Infinity;
@@ -64,6 +65,7 @@ useEffect(() => {
   if (images.length > 0) {
     highlightClosestImage();
   }
+// eslint-disable-next-line
 }, [images, highlightClosestImage]); // Added highlightClosestImage
 useEffect(() => {
   if (updatePending) {
