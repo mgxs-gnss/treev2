@@ -1,12 +1,13 @@
-import { Theme } from "@gnss/common";
-import { Home } from "./pages";
+// src/App.js
+import React from 'react';
+import ZoomPanComponent from './ZoomPanComponent';
 
-const App = () => {
+function App() {
   return (
-    <Theme>
-      <Home />
-    </Theme>
+    <div className="App">
+      <ZoomPanComponent />
+    </div>
   );
-};
+}
 
-export { App };
+export default App;
