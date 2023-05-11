@@ -25,7 +25,7 @@ const ZoomPanComponent = () => {
       setImages({ jsonFiles: jsonData, jpgFiles });
       setJsonCount(jsonData.length);
 
-      console.log(`Number of JSON files: ${jsonData.length}`);  // Added this line
+      console.log(`Number of JSON files: ${jsonData[0]}`);  // Added this line
     };
 
     fetchImages();
