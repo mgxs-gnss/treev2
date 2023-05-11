@@ -1,35 +1,28 @@
-// src/ZoomPanComponent.js
 import React, { useEffect, useState, useRef } from 'react';
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 const ZoomPanComponent = () => {
-  const [images, setImages] = useState({ jsonFiles: [], jpgFiles: [] });
-    const [jsonCount, setJsonCount] = useState(0);  // New state variable for JSON count
-  const [highlightedImageJson, setHighlightedImgJson] = useState(null);
+  const [jpgFiles, setJpgFiles] = useState([]);
+  const [imagesCount, setImagesCount] = useState(0);
+  const [jsonData, setJsonData] = useState(null);  // Added this line
   const imageRefs = useRef([]);
-
+  const [highlightedIndex, setHighlightedIndex] = useState(null); // New state for the highlighted index
 
   useEffect(() => {
     const fetchImages = async () => {
       const response = await fetch('https://api.mgxs.co/mem/list');
       const data = await response.json();
 
-      const jsonFiles = data.filter(file => file.endsWith('.json'));
       const jpgFiles = data.filter(file => file.endsWith('low.jpg'));
 
-        const jsonPromises = jsonFiles.map(jsonFile =>
-          fetch(jsonFile).then(response => response.json())
-        );
+      setImagesCount(jpgFiles.length);
+      setJpgFiles(jpgFiles);
 
-      const jsonData = await Promise.all(jsonPromises);
-      setImages({ jsonFiles: jsonData, jpgFiles });
-      setJsonCount(jsonData.length);
-
-      console.log(`Number of JSON files: ${jsonData[0]}`);  // Added this line
+      console.log(`Number of Jpg files: ${jpgFiles.length}`);
     };
 
     fetchImages();
-    const intervalId = setInterval(fetchImages, 1000);  // 10000 ms = 10 seconds
+    const intervalId = setInterval(fetchImages, 10000);  // 10000 ms = 10 seconds
 
     return () => clearInterval(intervalId); // Clear interval on unmount
   }, []);
@@ -54,20 +47,10 @@ const ZoomPanComponent = () => {
       }
     });
 
-if (closestIndex !== null) {
-  const jsonFile = images.jsonFiles[closestIndex];
-  if (jsonFile) {
-    setHighlightedImgJson(jsonFile);
-  } else {
-    console.log(`No JSON file for image at index: ${closestIndex}`);
-  }
-} else {
-  console.log(`No closest image found.`);
-}
+    setHighlightedIndex(closestIndex); // Set the highlighted index
 
     imageRefs.current.forEach((ref) => {
       if (ref) {
-
         const isHighlighted = ref === imageRefs.current[closestIndex];
         ref.style.transform = isHighlighted ? 'scale(1.4)' : 'scale(1)';
         ref.style.boxShadow = isHighlighted ? '50px 50px 50px black' : '0px 0px 0px black';
@@ -78,6 +61,29 @@ if (closestIndex !== null) {
       }
     });
   };
+
+  // New useEffect hook to print the image address whenever the highlighted image changes
+useEffect(() => {
+  const fetchJSON = async () => {
+    if (highlightedIndex !== null && jpgFiles[highlightedIndex]) {
+      const jsonURL = jpgFiles[highlightedIndex].replace('_low.jpg', '.json');
+      console.log(jsonURL);
+
+      try {
+        const response = await fetch(jsonURL);
+        const data = await response.json();
+        setJsonData(data);
+      } catch (error) {
+        console.error('Error fetching JSON file:', error);
+      }
+    }
+  };
+
+  fetchJSON();
+}, [highlightedIndex, jpgFiles]);
+
+
+
   useEffect(() => {
     document.body.style.backgroundColor = 'black';
     document.body.style.margin = '0';
@@ -87,25 +93,25 @@ if (closestIndex !== null) {
     };
   }, []);
 
+
   return (
     <>
-          <div style={{ backgroundColor: 'gray', color: 'black', width: '20%', padding: '20px', position: 'absolute', top: '0px', left: '0px', zIndex: 2}}>
-        Number of MEMs: {jsonCount}
-      </div>
-              <div
-                style={{ backgroundColor: 'gray', color: 'black', width: '30%', height: '100%', padding: '20px', position: 'absolute', bottom: '0px', right: '0px', zIndex: 2}}
+  <div style={{ backgroundColor: 'gray', color: 'black', width: '20%', padding: '20px', position: 'absolute', top: '0px', left: '0px', zIndex: 2}}>
+    Number of MEMs: {imagesCount}
+    {jsonData && (
+      <>
+        <p>Name: {jsonData.name}</p>
+        <p>Description: {jsonData.description}</p>
+        <h3>Attributes:</h3>
+        {jsonData.attributes.map((attr, index) => (
+          <div key={index}>
+            <strong>{attr.trait_type}:</strong> {JSON.stringify(attr.value)}
+          </div>
+        ))}
+      </>
+    )}
+  </div>
 
-                // Assuming `name` uniquely identifies each JSON file
-              >
-                  {highlightedImageJson && highlightedImageJson.attributes && highlightedImageJson.attributes.length > 0 ? (
-                    highlightedImageJson.attributes.map((attribute, index) => (
-                      <p key={index}>{attribute.trait_type}: {attribute.value}</p>
-                    ))
-                  ) : (
-                    <p>No highlighted JSON file</p>
-                  )}
-                </div>
-            )}
       <TransformWrapper
         initialScale={2}
         maxScale={10}
@@ -121,10 +127,10 @@ if (closestIndex !== null) {
           <React.Fragment>
             <TransformComponent>
               <div style={{ display: 'grid', gridTemplateColumns: `repeat(16, 1fr)`, gap: '20px', width: '100%', height: '100vh', backgroundColor: 'black' }}>
-                {images.jpgFiles.length > 0 &&
-                  <img loading="lazy" key={0} src={images.jpgFiles[0]} alt={`Example 0`} style={{ objectFit: 'cover', width: '100%' }} ref={el => imageRefs.current[0] = el}/>
+                {jpgFiles.length > 0 &&
+                  <img loading="lazy" key={0} src={jpgFiles[0]} alt={`Example 0`} style={{ objectFit: 'cover', width: '100%' }} ref={el => imageRefs.current[0] = el}/>
                 }
-                {images.jpgFiles.slice(1).map((src, index) => (
+                {jpgFiles.slice(1).map((src, index) => (
                   <img loading="lazy" key={index + 1} src={src} alt={`Example ${index + 1}`} style={{ objectFit: 'cover', width: '100%' }} ref={el => imageRefs.current[index + 1] = el}/>
                 ))}
               </div>
