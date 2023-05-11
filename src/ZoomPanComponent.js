@@ -5,6 +5,7 @@ import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 const ZoomPanComponent = () => {
   const [images, setImages] = useState({ jsonFiles: [], jpgFiles: [] });
   const [highlightedImageJson, setHighlightedImgJson] = useState(null);
+  // eslint-disable-next-line
   const [highlightedImageSrc, setHighlightedImgSrc] = useState(null);
   const [updatePending, setUpdatePending] = useState(false);  // new state variable
   const imageRefs = useRef([]);
