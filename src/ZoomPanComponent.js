@@ -3,16 +3,23 @@ import React, { useEffect, useState, useRef } from 'react';
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 
 const ZoomPanComponent = () => {
-  const [images, setImages] = useState([]);
+  const [images, setImages] = useState({ jsonFiles: [], jpgFiles: [] });
+  const [highlightedImageJson, setHighlightedImgJson] = useState(null);
   const [highlightedImageSrc, setHighlightedImgSrc] = useState(null);
   const [updatePending, setUpdatePending] = useState(false);  // new state variable
   const imageRefs = useRef([]);
 
-  useEffect(() => {
-    fetch('https://api.mgxs.co/mem/list')
-      .then(response => response.json())
-      .then(data => setImages(data));
-  }, []);
+    useEffect(() => {
+      fetch('https://api.mgxs.co/mem/list')
+        .then(response => response.json())
+        .then(data => {
+          // Filter only the JSON files
+          const jsonFiles = data.filter(file => file.endsWith('.json'));
+          // Filter only the JPG files
+          const jpgFiles = data.filter(file => file.endsWith('low.jpg'));
+          setImages({ jsonFiles, jpgFiles });
+        });
+    }, []);
 
 // eslint-disable-next-line
   const highlightClosestImage = () => {
@@ -27,13 +34,16 @@ const ZoomPanComponent = () => {
         const dx = center.x - imageCenter.x;
         const dy = center.y - imageCenter.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        if (distance < minDistance) {
-          minDistance = distance;
-          closestImage = ref;
-          setHighlightedImgSrc(images[index]);
-          setUpdatePending(true);  // set updatePending to true
+            if (distance < minDistance) {
+              minDistance = distance;
+              closestImage = ref;
+              setHighlightedImgSrc(images.jpgFiles[index]);
 
-        }
+              const jsonFile = images.jsonFiles.find(file => file.name === images.jpgFiles[index]);
+              setHighlightedImgJson(jsonFile);
+
+              setUpdatePending(true);
+            }
       }
     });
     if (updatePending) {
@@ -54,8 +64,8 @@ const ZoomPanComponent = () => {
     });
   };
   useEffect(() => {
-    document.body.style.backgroundColor = 'black';
-     document.body.style.margin = '0';// set the body background color to black
+        document.body.style.backgroundColor = 'black';
+        document.body.style.margin = '0';// set the body background color to black
     return () => { // cleanup function
       document.body.style.backgroundColor = null; // reset the body background color when component unmounts
     };
@@ -75,9 +85,13 @@ useEffect(() => {
 
   return (
     <>
-      {highlightedImageSrc && (
-            <div style={{ backgroundColor:'gray', color: 'black',width:'30%', height:'20%', padding: '20px', position: 'absolute', bottom: '0px', right: '0px', zIndex: 2}}>{highlightedImageSrc}</div>
-      )}
+        {highlightedImageJson && (
+          <div style={{ backgroundColor:'gray', color: 'black',width:'30%', height:'20%', padding: '20px', position: 'absolute', bottom: '0px', right: '0px', zIndex: 2}}>
+            {highlightedImageJson.attributes.map((attribute, index) => (
+              <p key={index}>{attribute.trait_type}: {attribute.value}</p>
+            ))}
+          </div>
+        )}
       <TransformWrapper
         initialScale={2}
         maxScale={10}
@@ -90,7 +104,7 @@ useEffect(() => {
           <React.Fragment>
             <TransformComponent>
               <div style={{ display: 'grid', gridTemplateColumns: `repeat(16, 1fr)`, gap: '20px', width: '100%', height: '100vh', backgroundColor: 'black' }}>
-                {images.map((src, index) => (
+                {images.jpgFiles.map((src, index) => (
                   <img loading="lazy" key={index} src={src} alt={`Example ${index}`} style={{ objectFit: 'cover', width: '100%' }} ref={el => imageRefs.current[index] = el}/>
                 ))}
               </div>
