@@ -67,7 +67,7 @@ const ZoomPanComponent = () => {
 useEffect(() => {
   const fetchJSON = async () => {
     if (highlightedIndex !== null && jpgFiles[highlightedIndex]) {
-      const jsonURL = jpgFiles[highlightedIndex].replace('_low.jpg', '.json');
+      const jsonURL = jpgFiles[highlightedIndex].replace('.jpg', '.json');
       console.log(jsonURL);
 
       try {
