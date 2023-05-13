@@ -13,7 +13,8 @@ const ZoomPanComponent = () => {
       const response = await fetch('https://api.mgxs.co/mem/list');
       const data = await response.json();
 
-      const jpgFiles = data.filter(file => file.endsWith('low.jpg'));
+      //const jpgFiles = data.filter(file => file.endsWith('low.jpg'));
+      const jpgFiles = data.filter(file => !file.endsWith('low.jpg') && !file.endsWith('.json'));
 
       setImagesCount(jpgFiles.length);
       setJpgFiles(jpgFiles);
