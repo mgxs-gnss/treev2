@@ -1,12 +1,11 @@
-// src/App.js
-import React from 'react';
-import ZoomPanComponent from './ZoomPanComponent';
+import { Theme } from "@gnss/common";
+import ZoomPanComponent from "./components/ZoomPanComponent";
 
 function App() {
   return (
-    <div className="App">
+    <Theme>
       <ZoomPanComponent />
-    </div>
+    </Theme>
   );
 }
 

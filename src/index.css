@@ -1,0 +1,14 @@
+body {
+  margin: 0;
+}
+
+#root {
+  position: relative;
+  width: 100vw;
+  min-height: 100vh;
+}
+
+.react-transform-wrapper {
+  width: 100vw !important;
+  height: 100vh !important;
+}
