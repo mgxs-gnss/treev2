@@ -30,6 +30,7 @@ const filterOutAttrs = [
   "Tst2",
   "Tst3",
   "Saturation",
+  "Pallete",
 ];
 
 const Info = ({ imageCount, jsonData }: IInfo) => {
