@@ -1,21 +1,44 @@
+import { CONTRACT_REVEAL_ADDRESS } from "@gnss/web3";
 import { Info as InfoIcon } from "@mui/icons-material";
-import { Card, Divider, Fab, Stack } from "@mui/material";
+import { Box, Card, Chip, Divider, Fab, Link, Stack } from "@mui/material";
+import { AlignHorizontalCenter } from "@mui/icons-material";
 import { useState } from "react";
+import { JSONData } from "../interfaces";
+import { compressAddress } from "../utils";
 import { Paragraph } from "./Paragraph";
 
 interface IInfo {
   imageCount: number;
-  jsonData?: Record<string, any>;
+  jsonData?: JSONData;
 }
+
+const filterOutAttrs = [
+  "GNSS",
+  "A",
+  "B",
+  "C",
+  "Strength A",
+  "Strength B",
+  "Strength C",
+  "Ratio",
+  "Shape",
+  "Fractal",
+  "TCfg1",
+  "TCfg2",
+  "TCfg3",
+  "Tst1",
+  "Tst2",
+  "Tst3",
+  "Saturation",
+];
 
 const Info = ({ imageCount, jsonData }: IInfo) => {
   const [opened, setOpened] = useState(false);
-    const gnssAttribute = jsonData?.attributes?.find((attr: any) => attr.trait_type === 'GNSS');
 
   return (
     <>
       <Fab
-        sx={{ position: "fixed", top: 0, right: 0, m: 2 }}
+        sx={{ position: "fixed", zIndex: 6, top: 0, right: 0, m: 2 }}
         color="primary"
         variant="circular"
         onClick={() => setOpened(!opened)}
@@ -24,47 +47,23 @@ const Info = ({ imageCount, jsonData }: IInfo) => {
       </Fab>
       <Card
         sx={{
+          m: 1,
           width: "300px",
-          padding: "20px",
           position: "fixed",
           top: 0,
           left: 0,
-          transition: "transform .2s ease-in-out",
-          transform: `translate(${opened ? 0 : "-100%"})`,
-          zIndex: 2,
+          zIndex: 7,
           height: "auto",
           maxHeight: "100vh",
           overflowY: "scroll",
+          padding: 3,
+          transition: "transform .2s ease-in-out",
+          transform: `translate(${opened ? 0 : "-120%"})`,
         }}
       >
         <Stack spacing={1}>
-          <Paragraph variant="subtitle2">
-            <Paragraph variant="inherit" bold>
-              Number of MEMs:
-            </Paragraph>{" "}
-            {imageCount}
-          </Paragraph>
-          <Divider />
-
           {jsonData && (
-
             <>
-                {gnssAttribute && (
-                  <Paragraph>
-
-                    <a
-                      href={`https://opensea.io/assets/ethereum/0xa1de9f93c56c290c48849b1393b09eb616d55dbb/${gnssAttribute.value}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                          <img
-                            src={`https://assets.mgxs.co/${gnssAttribute.value}.png`}
-                            alt="GNSS Attribute"
-                            style={{ width: '100px', display: 'block', marginLeft: 'auto',  marginRight: 'auto'}}
-                          />
-                    </a>
-                  </Paragraph>
-                )}
               <Paragraph>
                 <Paragraph variant="inherit" bold>
                   Name:
@@ -77,23 +76,61 @@ const Info = ({ imageCount, jsonData }: IInfo) => {
                 </Paragraph>{" "}
                 {jsonData.description}
               </Paragraph>
-              <Divider />
-              <Paragraph variant="subtitle2" bold>
-                Attributes:
+              <Paragraph>
+                <Paragraph variant="inherit" bold>
+                  Creator:
+                </Paragraph>{" "}
+                {compressAddress(jsonData.creator)}
               </Paragraph>
 
-              {jsonData.attributes.map((attr: any, index: number) => (
-                <Paragraph key={index}>
-                  <Paragraph variant="inherit" bold>
-                    {attr.trait_type}:
-                  </Paragraph>{" "}
-                  {JSON.stringify(attr.value)}
-                </Paragraph>
-              ))}
+              <Divider style={{ margin: "20px 0 15px" }} />
+              <Paragraph variant="subtitle2" bold>
+                GNSS #{jsonData.gnssNum}
+              </Paragraph>
+              <Box>
+                <Link
+                  href={`https://opensea.io/assets/ethereum/${CONTRACT_REVEAL_ADDRESS}/${jsonData.gnssNum}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Box
+                    component="img"
+                    src={`https://assets.mgxs.co/thumbs/${jsonData.gnssNum}.jpg`}
+                    alt="GNSS Attribute"
+                    width="100%"
+                  />
+                </Link>
+              </Box>
+
+              {jsonData.attributes
+                .filter((attr) => !filterOutAttrs.includes(attr.trait_type))
+                .map((attr, index) => (
+                  <Paragraph key={index}>
+                    <Paragraph variant="inherit" bold>
+                      {attr.trait_type}:
+                    </Paragraph>{" "}
+                    {JSON.stringify(attr.value)}
+                  </Paragraph>
+                ))}
             </>
           )}
         </Stack>
       </Card>
+
+      <Chip
+        icon={<AlignHorizontalCenter />}
+        color="secondary"
+        label={`MEMs: ${imageCount}`}
+        sx={{
+          boxShadow: 5,
+          position: "fixed",
+          zIndex: 5,
+          bottom: 0,
+          mb: 2,
+          left: "50%",
+          transform: "translate(-50%, 0)",
+        }}
+      />
     </>
   );
 };

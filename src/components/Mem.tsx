@@ -17,6 +17,7 @@ const Mem = ({ active, src, index }: IMem) => {
       component="img"
       loading="lazy"
       src={src}
+      alt=""
       sx={{
         objectFit: "cover",
         width: "100%",

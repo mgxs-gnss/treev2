@@ -6,6 +6,7 @@
     "@emotion/react": "^11.10.6",
     "@emotion/styled": "^11.10.6",
     "@gnss/common": "github:mgxs-gnss/common",
+    "@gnss/web3": "github:mgxs-gnss/web3",
     "@mui/icons-material": "^5.11.16",
     "@mui/material": "^5.12.1",
     "@testing-library/jest-dom": "^5.16.5",

@@ -1,10 +1,16 @@
 import { useState, useEffect } from "react";
+import { JSONData } from "../interfaces";
+
+interface Mems {
+  owner: string;
+  url: string;
+}
 
 const useMemImages = (highlightedIndex?: number) => {
-  const [images, setImages] = useState<string[]>([]);
+  const [images, setImages] = useState<Mems[]>([]);
   const [imageCount, setImageCount] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
-  const [jsonData, setJsonData] = useState<Record<string, any>>();
+  const [jsonData, setJsonData] = useState<JSONData>();
 
   useEffect(() => {
     const load = async () => {
@@ -29,9 +35,17 @@ const useMemImages = (highlightedIndex?: number) => {
   useEffect(() => {
     const loadJson = async (index: number) => {
       try {
-        const jsonURL = images[index].replace(".jpg", ".json");
+        const jsonURL = images[index].url.replace(".jpg", ".json");
         const data = await (await fetch(jsonURL)).json();
-        setJsonData(data);
+
+        const imgName = images[index].url;
+        const lastIndexSlash = imgName.lastIndexOf("/") + 1;
+        const gnssNum = imgName
+          .substring(lastIndexSlash, imgName.length)
+          .replace(".jpg", "")
+          .split("_")[1];
+
+        setJsonData({ creator: images[index].owner, gnssNum, ...data });
       } catch (error) {
         console.error("Error fetching JSON file:", error);
       }

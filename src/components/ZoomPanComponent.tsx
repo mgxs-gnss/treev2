@@ -68,10 +68,10 @@ const ZoomPanComponent = () => {
                     width: "100%",
                   }}
                 >
-                  {images.slice(1).map((src, index) => (
+                  {images.map((src, index) => (
                     <Mem
                       index={index}
-                      src={src}
+                      src={src.url}
                       active={isHome ? undefined : highlightedIndex}
                       key={index}
                     />
