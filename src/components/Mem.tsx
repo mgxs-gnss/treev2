@@ -13,6 +13,7 @@ const Mem = ({ active, src, index }: IMem) => {
 
   return (
     <Box
+      id={index.toString()}
       component="img"
       loading="lazy"
       src={src}
