@@ -10,6 +10,7 @@ interface IInfo {
 
 const Info = ({ imageCount, jsonData }: IInfo) => {
   const [opened, setOpened] = useState(false);
+    const gnssAttribute = jsonData?.attributes?.find((attr: any) => attr.trait_type === 'GNSS');
 
   return (
     <>
@@ -44,8 +45,26 @@ const Info = ({ imageCount, jsonData }: IInfo) => {
             {imageCount}
           </Paragraph>
           <Divider />
+
           {jsonData && (
+
             <>
+                {gnssAttribute && (
+                  <Paragraph>
+
+                    <a
+                      href={`https://opensea.io/assets/ethereum/0xa1de9f93c56c290c48849b1393b09eb616d55dbb/${gnssAttribute.value}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                          <img
+                            src={`https://assets.mgxs.co/${gnssAttribute.value}.png`}
+                            alt="GNSS Attribute"
+                            style={{ width: '100px', display: 'block', marginLeft: 'auto',  marginRight: 'auto'}}
+                          />
+                    </a>
+                  </Paragraph>
+                )}
               <Paragraph>
                 <Paragraph variant="inherit" bold>
                   Name:
@@ -62,6 +81,7 @@ const Info = ({ imageCount, jsonData }: IInfo) => {
               <Paragraph variant="subtitle2" bold>
                 Attributes:
               </Paragraph>
+
               {jsonData.attributes.map((attr: any, index: number) => (
                 <Paragraph key={index}>
                   <Paragraph variant="inherit" bold>
