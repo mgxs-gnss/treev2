@@ -63,7 +63,7 @@ const ZoomPanComponent = () => {
                   ref={containerRef}
                   sx={{
                     display: "grid",
-                    gridTemplateColumns: `repeat(8, 1fr)`,
+                    gridTemplateColumns: `repeat(12, 1fr)`,
                     gap: [1, 2],
                     width: "100%",
                   }}
