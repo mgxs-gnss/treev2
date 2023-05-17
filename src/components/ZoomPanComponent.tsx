@@ -5,6 +5,7 @@ import { useHighlightedIndex, useMemImages } from "../hooks";
 import { Info } from "./Info";
 import { Mem } from "./Mem";
 import { Interval } from "./Interval";
+import { COLUMNS } from "../utils";
 
 const ZoomPanComponent = () => {
   const isHome = new URLSearchParams(window.location.search).has("home");
@@ -63,7 +64,7 @@ const ZoomPanComponent = () => {
                   ref={containerRef}
                   sx={{
                     display: "grid",
-                    gridTemplateColumns: `repeat(12, 1fr)`,
+                    gridTemplateColumns: `repeat(${COLUMNS}, 1fr)`,
                     gap: [1, 2],
                     width: "100%",
                   }}

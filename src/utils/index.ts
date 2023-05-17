@@ -7,3 +7,5 @@ export const compressAddress = (address?: string) => {
   }
   return `0x${address.slice(0, 5)}...${address.slice(-5)}`;
 };
+
+export const COLUMNS = 12;
