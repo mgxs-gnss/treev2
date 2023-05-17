@@ -37,7 +37,6 @@ const useMemImages = (highlightedIndex?: number) => {
       try {
         const jsonURL = images[index].url.replace(".jpg", ".json");
         const data = await (await fetch(jsonURL)).json();
-
         const imgName = images[index].url;
         const lastIndexSlash = imgName.lastIndexOf("/") + 1;
         const gnssNum = imgName
@@ -51,7 +50,7 @@ const useMemImages = (highlightedIndex?: number) => {
       }
     };
 
-    highlightedIndex && loadJson(highlightedIndex);
+    highlightedIndex !== undefined && loadJson(highlightedIndex);
   }, [highlightedIndex, images]);
 
   return { images, loading, imageCount, jsonData };
