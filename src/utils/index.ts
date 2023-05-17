@@ -8,4 +8,7 @@ export const compressAddress = (address?: string) => {
   return `0x${address.slice(0, 5)}...${address.slice(-5)}`;
 };
 
-export const COLUMNS = 12;
+let COLUMNS = 12;
+export const setColumns = (total: number) =>
+  (COLUMNS = Math.ceil(Math.sqrt(total)) + 1);
+export const getColumns = () => COLUMNS;

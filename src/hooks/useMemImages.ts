@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { JSONData } from "../interfaces";
+import { setColumns } from "../utils";
 
 interface Mems {
   owner: string;
@@ -22,6 +23,7 @@ const useMemImages = (highlightedIndex?: number) => {
 
         setImageCount(imagesLoaded.length);
         setImages(imagesLoaded);
+        setColumns(imagesLoaded.length);
       } catch (e) {
         console.log(e);
       } finally {
@@ -50,7 +52,9 @@ const useMemImages = (highlightedIndex?: number) => {
       }
     };
 
-    highlightedIndex !== undefined && loadJson(highlightedIndex);
+    highlightedIndex !== undefined &&
+      images.length > 0 &&
+      loadJson(highlightedIndex);
   }, [highlightedIndex, images]);
 
   return { images, loading, imageCount, jsonData };

@@ -1,5 +1,5 @@
 import { Box, useTheme } from "@mui/material";
-import { COLUMNS } from "../utils";
+import { getColumns } from "../utils";
 
 interface IMem {
   active?: number;
@@ -22,7 +22,7 @@ const Mem = ({ active, src, index }: IMem) => {
       sx={{
         objectFit: "cover",
         width: "100%",
-        height: `${(window.innerWidth / COLUMNS) * 1.2}px`,
+        height: `${(window.innerWidth / getColumns()) * 1.2}px`,
         transform: isHighlighted ? "scale(1.4)" : "scale(1)",
         boxShadow: isHighlighted
           ? `20px 20px 50px ${theme.palette.grey[900]}`
