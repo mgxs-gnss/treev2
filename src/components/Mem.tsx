@@ -10,6 +10,7 @@ interface IMem {
 const Mem = ({ active, src, index }: IMem) => {
   const theme = useTheme();
 
+  const isHome = new URLSearchParams(window.location.search).has("home");
   const isHighlighted = active === index;
 
   return (
@@ -17,22 +18,21 @@ const Mem = ({ active, src, index }: IMem) => {
       id={index.toString()}
       component="img"
       loading="lazy"
-      src={src}
+      src={src.replace(".jpg", "_low.jpg")}
       alt=""
       sx={{
         objectFit: "cover",
         width: "100%",
         height: `${(window.innerWidth / getColumns()) * 1.2}px`,
-        transform: isHighlighted ? "scale(1.4)" : "scale(1)",
+        transform: isHighlighted ? "scale(2.5)" : "scale(1)",
+        willChange: "transform",
         boxShadow: isHighlighted
           ? `20px 20px 50px ${theme.palette.grey[900]}`
           : "0px 0px 0px black",
         zIndex: isHighlighted ? "1" : "0",
-        transition: "transform, boxShadow 0.1s ease-in-out",
-        opacity: isHighlighted ? "1" : ".9",
-        outline: isHighlighted
-          ? `.7rem solid ${theme.palette.grey[700]}`
-          : "none",
+        transition: "all 0.1s ease-in-out",
+        opacity: isHighlighted ? "1" : isHome ? 1 : ".6",
+        outline: isHighlighted ? `.5rem solid rgb(225, 225, 225)` : "none",
       }}
     />
   );
