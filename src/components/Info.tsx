@@ -126,8 +126,8 @@ const Info = ({ imageCount, jsonData }: IInfo) => {
           boxShadow: 5,
           position: "fixed",
           zIndex: 5,
-          bottom: 0,
-          mb: 2,
+          top: 0,
+          mt: 2,
           left: "50%",
           transform: "translate(-50%, 0)",
         }}

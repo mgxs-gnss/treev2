@@ -7,9 +7,13 @@ interface Mems {
   url: string;
 }
 
+interface Data {
+  images: Mems[];
+  count: number;
+}
+
 const useMemImages = (highlightedIndex?: number) => {
-  const [images, setImages] = useState<Mems[]>([]);
-  const [imageCount, setImageCount] = useState<number>(0);
+  const [data, setData] = useState<Data>();
   const [loading, setLoading] = useState<boolean>(false);
   const [jsonData, setJsonData] = useState<JSONData>();
 
@@ -17,13 +21,14 @@ const useMemImages = (highlightedIndex?: number) => {
     const load = async () => {
       try {
         setLoading(true);
-        const imagesLoaded = await (
+        const images = await (
           await fetch("https://api.mgxs.co/mem/list")
         ).json();
 
-        setImageCount(imagesLoaded.length);
-        setImages(imagesLoaded);
-        setColumns(imagesLoaded.length);
+        const count = images.length;
+
+        setData({ images, count });
+        setColumns(count);
       } catch (e) {
         console.log(e);
       } finally {
@@ -31,14 +36,16 @@ const useMemImages = (highlightedIndex?: number) => {
       }
     };
 
-    load();
-  }, [setImages]);
+    !data && !loading && load();
+  }, [data, setData, loading]);
 
   useEffect(() => {
     const loadJson = async (index: number) => {
       try {
+        if (!data) return;
+        const { images } = data;
         const jsonURL = images[index].url.replace(".jpg", ".json");
-        const data = await (await fetch(jsonURL)).json();
+        const jsonData = await (await fetch(jsonURL)).json();
         const imgName = images[index].url;
         const lastIndexSlash = imgName.lastIndexOf("/") + 1;
         const gnssNum = imgName
@@ -46,18 +53,24 @@ const useMemImages = (highlightedIndex?: number) => {
           .replace(".jpg", "")
           .split("_")[1];
 
-        setJsonData({ creator: images[index].owner, gnssNum, ...data });
+        setJsonData({ creator: images[index].owner, gnssNum, ...jsonData });
       } catch (error) {
         console.error("Error fetching JSON file:", error);
       }
     };
 
-    highlightedIndex !== undefined &&
-      images.length > 0 &&
+    data &&
+      highlightedIndex !== undefined &&
+      data.images.length > 0 &&
       loadJson(highlightedIndex);
-  }, [highlightedIndex, images]);
+  }, [highlightedIndex, data]);
 
-  return { images, loading, imageCount, jsonData };
+  return {
+    images: data?.images,
+    loading,
+    imageCount: data?.count,
+    jsonData,
+  };
 };
 
 export { useMemImages };
