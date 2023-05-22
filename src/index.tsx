@@ -8,7 +8,7 @@ const root = ReactDOM.createRoot(
 );
 
 Sentry.init({
-  dsn: "https://b31ad64ddc0c41aaa7e09468dad4d6eb@o4505227351031808.ingest.sentry.io/4505227357978624",
+  dsn: "https://05c06a71715d47b3870050ae9e337fa4@o4505227396251648.ingest.sentry.io/4505227410735104",
   integrations: [new Sentry.BrowserTracing(), new Sentry.Replay()],
   // Performance Monitoring
   tracesSampleRate: 1.0, // Capture 100% of the transactions, reduce in production!
