@@ -12,3 +12,8 @@ export interface JSONData {
   image: string;
   name: string;
 }
+
+export interface Mems {
+  owner: string;
+  url: string;
+}

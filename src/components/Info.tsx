@@ -2,7 +2,7 @@ import { CONTRACT_REVEAL_ADDRESS } from "@gnss/web3";
 import { AlignHorizontalCenter, Info as InfoIcon } from "@mui/icons-material";
 import { Box, Card, Chip, Divider, Fab, Link, Stack } from "@mui/material";
 import { useState } from "react";
-import { JSONData } from "../interfaces";
+import { JSONData, Mems } from "../interfaces";
 import { compressAddress } from "../utils";
 import { Paragraph } from "./Paragraph";
 import { Search } from "./Search";
@@ -10,6 +10,7 @@ import { Search } from "./Search";
 interface IInfo {
   imageCount: number;
   jsonData?: JSONData;
+  images: Mems[];
   onChange?(num: string): void;
 }
 
@@ -34,7 +35,7 @@ const filterOutAttrs = [
   "Pallete",
 ];
 
-const Info = ({ imageCount, jsonData, onChange }: IInfo) => {
+const Info = ({ imageCount, jsonData, images, onChange }: IInfo) => {
   const [opened, setOpened] = useState(false);
 
   return (
@@ -132,7 +133,7 @@ const Info = ({ imageCount, jsonData, onChange }: IInfo) => {
           transform: "translate(-50%, 0)",
         }}
       >
-        <Search onSearch={onChange} />
+        <Search images={images} onSearch={onChange} />
         <Chip
           icon={<AlignHorizontalCenter />}
           color="secondary"

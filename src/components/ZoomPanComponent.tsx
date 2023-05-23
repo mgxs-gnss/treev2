@@ -11,7 +11,8 @@ const ZoomPanComponent = () => {
   const isHome = new URLSearchParams(window.location.search).has("home");
 
   const containerRef = useRef<HTMLDivElement>();
-  const { highlightedIndex, updateIndex } = useHighlightedIndex(containerRef);
+  const { highlightedIndex, updateIndex, setHighlightedIndex } =
+    useHighlightedIndex(containerRef);
   const { loading, images, imageCount, jsonData } = useMemImages(
     isHome ? undefined : highlightedIndex
   );
@@ -71,16 +72,14 @@ const ZoomPanComponent = () => {
 
               {!isHome && (
                 <Info
+                  images={images}
                   onChange={(num: string) => {
-                    const index = images.findIndex(
-                      (a) => a.url.split("_")[1].split(".")[0].indexOf(num) > -1
-                    );
-
-                    if (num === "" || index === -1) {
+                    if (num === "") {
+                      setHighlightedIndex(undefined);
                       resetTransform(intervals[1], "easeInOutQuad");
                     } else {
-                      zoomToElement(num, 3, intervals[0], "easeInOutQuad");
-                      updateIndex();
+                      zoomToElement(`${num}`, 2, intervals[0], "easeInOutQuad");
+                      setTimeout(updateIndex, intervals[0]);
                     }
                   }}
                   imageCount={imageCount}

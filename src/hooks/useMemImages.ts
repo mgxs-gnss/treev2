@@ -1,11 +1,6 @@
 import { useEffect, useState } from "react";
-import { JSONData } from "../interfaces";
+import { JSONData, Mems } from "../interfaces";
 import { setColumns } from "../utils";
-
-interface Mems {
-  owner: string;
-  url: string;
-}
 
 interface Data {
   images: Mems[];
