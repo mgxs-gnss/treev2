@@ -40,14 +40,15 @@ const Info = ({ imageCount, jsonData, images, onChange }: IInfo) => {
 
   return (
     <Box position="fixed" zIndex={100}>
-      <Fab
-        sx={{ position: "fixed", zIndex: 6, top: 0, right: 0, m: 2 }}
-        color="primary"
-        variant="circular"
-        onClick={() => setOpened(!opened)}
-      >
-        <InfoIcon />
-      </Fab>
+      <Box sx={{ position: "fixed", zIndex: 6, top: 0, right: 0 }} p={[2, 4]}>
+        <Fab
+          color="primary"
+          variant="circular"
+          onClick={() => setOpened(!opened)}
+        >
+          <InfoIcon />
+        </Fab>
+      </Box>
       <Card
         sx={{
           m: 1,
@@ -121,27 +122,28 @@ const Info = ({ imageCount, jsonData, images, onChange }: IInfo) => {
       </Card>
 
       <Stack
-        direction="row"
+        direction={["column", "row"]}
         alignItems="center"
-        spacing={3}
+        justifyContent="center"
+        spacing={2}
         sx={{
           position: "fixed",
           zIndex: 5,
-          top: 0,
-          mt: 2,
-          left: "50%",
-          transform: "translate(-50%, 0)",
+          top: ["20px", 0],
+          width: "100%",
         }}
       >
         <Search images={images} onSearch={onChange} />
-        <Chip
-          icon={<AlignHorizontalCenter />}
-          color="secondary"
-          label={`MEMs: ${imageCount}`}
-          sx={{
-            boxShadow: 5,
-          }}
-        />
+        <Box p={[2, 4]}>
+          <Chip
+            icon={<AlignHorizontalCenter />}
+            color="secondary"
+            label={`MEMs: ${imageCount}`}
+            sx={{
+              boxShadow: 5,
+            }}
+          />
+        </Box>
       </Stack>
     </Box>
   );

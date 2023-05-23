@@ -24,15 +24,20 @@ const Mem = ({ active, src, index }: IMem) => {
         objectFit: "cover",
         width: "100%",
         height: `${(window.innerWidth / getColumns()) * 1.2}px`,
-        transform: isHighlighted ? "scale(2.5)" : "scale(1)",
+        transform: isHighlighted ? ["scale(6.5)", "scale(2.5)"] : "scale(1)",
         willChange: "transform",
         boxShadow: isHighlighted
-          ? `20px 20px 50px ${theme.palette.grey[900]}`
+          ? [
+              `0 0 20px ${theme.palette.grey[900]}`,
+              `20px 20px 50px ${theme.palette.grey[900]}`,
+            ]
           : "0px 0px 0px black",
         zIndex: isHighlighted ? "1" : "0",
         transition: "all 0.1s ease-in-out",
         opacity: isHighlighted ? "1" : isHome ? 1 : ".6",
-        outline: isHighlighted ? `.5rem solid rgb(225, 225, 225)` : "none",
+        outline: isHighlighted
+          ? [`.1rem solid rgb(225, 225, 225)`, `.5rem solid rgb(225, 225, 225)`]
+          : "none",
       }}
     />
   );

@@ -44,7 +44,7 @@ const Search = ({ onSearch, images }: Props) => {
         p: 1,
         background: notFound
           ? theme.palette.error.main
-          : theme.palette.secondary.main,
+          : theme.palette.grey[800],
       }}
     >
       <Stack
@@ -62,9 +62,9 @@ const Search = ({ onSearch, images }: Props) => {
             maxLength: 4,
           }}
           sx={{
-            borderRadius: "10px",
+            borderRadius: "20px",
             border: "0 !important",
-            ml: 2,
+            width: "100px",
             boxShadow: "none",
           }}
         />
