@@ -72,15 +72,15 @@ const ZoomPanComponent = () => {
               {!isHome && (
                 <Info
                   onChange={(num: string) => {
-                    if (num === "") {
+                    const index = images.findIndex(
+                      (a) => a.url.split("_")[1].split(".")[0].indexOf(num) > -1
+                    );
+
+                    if (num === "" || index === -1) {
                       resetTransform(intervals[1], "easeInOutQuad");
                     } else {
-                      zoomToElement(
-                        num,
-                        undefined,
-                        intervals[0],
-                        "easeInOutQuad"
-                      );
+                      zoomToElement(num, 3, intervals[0], "easeInOutQuad");
+                      updateIndex();
                     }
                   }}
                   imageCount={imageCount}

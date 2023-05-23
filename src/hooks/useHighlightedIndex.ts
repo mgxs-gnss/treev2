@@ -34,7 +34,7 @@ const useHighlightedIndex = (
     setHighlightedIndex(closestIndex);
   }, [container]);
 
-  return { highlightedIndex, updateIndex };
+  return { highlightedIndex, updateIndex, setHighlightedIndex };
 };
 
 export { useHighlightedIndex };
