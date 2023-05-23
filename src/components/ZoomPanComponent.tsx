@@ -2,10 +2,10 @@ import { Box, CircularProgress } from "@mui/material";
 import { useRef } from "react";
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 import { useHighlightedIndex, useMemImages } from "../hooks";
-import { Info } from "./Info";
-import { Mem } from "./Mem";
-import { Interval } from "./Interval";
 import { getColumns } from "../utils";
+import { Info } from "./Info";
+import { Interval } from "./Interval";
+import { Mem } from "./Mem";
 
 const ZoomPanComponent = () => {
   const isHome = new URLSearchParams(window.location.search).has("home");
@@ -32,8 +32,6 @@ const ZoomPanComponent = () => {
 
   return (
     <>
-      {!isHome && <Info imageCount={imageCount} jsonData={jsonData} />}
-
       <TransformWrapper
         initialScale={2}
         maxScale={10}
@@ -51,6 +49,7 @@ const ZoomPanComponent = () => {
       >
         {({ zoomToElement, zoomIn, zoomOut, resetTransform, ...rest }) => {
           const intervals = [1000, 750, 5500];
+
           return (
             <>
               {isHome && (
@@ -67,6 +66,25 @@ const ZoomPanComponent = () => {
                       resetTransform(intervals[1], "easeInOutQuad");
                     }, intervals[2]);
                   }}
+                />
+              )}
+
+              {!isHome && (
+                <Info
+                  onChange={(num: string) => {
+                    if (num === "") {
+                      resetTransform(intervals[1], "easeInOutQuad");
+                    } else {
+                      zoomToElement(
+                        num,
+                        undefined,
+                        intervals[0],
+                        "easeInOutQuad"
+                      );
+                    }
+                  }}
+                  imageCount={imageCount}
+                  jsonData={jsonData}
                 />
               )}
               <TransformComponent>

@@ -1,15 +1,16 @@
 import { CONTRACT_REVEAL_ADDRESS } from "@gnss/web3";
-import { Info as InfoIcon } from "@mui/icons-material";
+import { AlignHorizontalCenter, Info as InfoIcon } from "@mui/icons-material";
 import { Box, Card, Chip, Divider, Fab, Link, Stack } from "@mui/material";
-import { AlignHorizontalCenter } from "@mui/icons-material";
 import { useState } from "react";
 import { JSONData } from "../interfaces";
 import { compressAddress } from "../utils";
 import { Paragraph } from "./Paragraph";
+import { Search } from "./Search";
 
 interface IInfo {
   imageCount: number;
   jsonData?: JSONData;
+  onChange?(num: string): void;
 }
 
 const filterOutAttrs = [
@@ -33,11 +34,11 @@ const filterOutAttrs = [
   "Pallete",
 ];
 
-const Info = ({ imageCount, jsonData }: IInfo) => {
+const Info = ({ imageCount, jsonData, onChange }: IInfo) => {
   const [opened, setOpened] = useState(false);
 
   return (
-    <>
+    <Box position="fixed" zIndex={100}>
       <Fab
         sx={{ position: "fixed", zIndex: 6, top: 0, right: 0, m: 2 }}
         color="primary"
@@ -118,12 +119,11 @@ const Info = ({ imageCount, jsonData }: IInfo) => {
         </Stack>
       </Card>
 
-      <Chip
-        icon={<AlignHorizontalCenter />}
-        color="secondary"
-        label={`MEMs: ${imageCount}`}
+      <Stack
+        direction="row"
+        alignItems="center"
+        spacing={3}
         sx={{
-          boxShadow: 5,
           position: "fixed",
           zIndex: 5,
           top: 0,
@@ -131,8 +131,18 @@ const Info = ({ imageCount, jsonData }: IInfo) => {
           left: "50%",
           transform: "translate(-50%, 0)",
         }}
-      />
-    </>
+      >
+        <Search onSearch={onChange} />
+        <Chip
+          icon={<AlignHorizontalCenter />}
+          color="secondary"
+          label={`MEMs: ${imageCount}`}
+          sx={{
+            boxShadow: 5,
+          }}
+        />
+      </Stack>
+    </Box>
   );
 };
 
