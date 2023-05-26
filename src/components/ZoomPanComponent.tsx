@@ -1,14 +1,17 @@
 import { Box, CircularProgress } from "@mui/material";
 import { useRef } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
 import { useHighlightedIndex, useMemImages } from "../hooks";
 import { getColumns } from "../utils";
-import { Info } from "./Info";
-import { Interval } from "./Interval";
-import { Mem } from "./Mem";
+import { Info, Interval, Mem } from "./";
+
+const TIME_REFRESH = 5 * 60 * 1000;
 
 const ZoomPanComponent = () => {
-  const isHome = new URLSearchParams(window.location.search).has("home");
+  const [search] = useSearchParams();
+  const isHome = search.has("home");
+  const navigate = useNavigate();
 
   const containerRef = useRef<HTMLDivElement>();
   const { highlightedIndex, updateIndex, setHighlightedIndex } =
@@ -57,6 +60,13 @@ const ZoomPanComponent = () => {
                 <Interval
                   interval={intervals.reduce((a, b) => a + b, 0)}
                   callback={() => {
+                    const now = new Date().getTime();
+
+                    //@ts-ignore
+                    if (now - window.timeStart >= TIME_REFRESH) {
+                      navigate(0);
+                    }
+
                     zoomToElement(
                       (~~(Math.random() * imageCount)).toString(),
                       undefined,
@@ -114,4 +124,4 @@ const ZoomPanComponent = () => {
   );
 };
 
-export default ZoomPanComponent;
+export { ZoomPanComponent };

@@ -1,12 +1,19 @@
 import { Theme } from "@gnss/common";
-import ZoomPanComponent from "./components/ZoomPanComponent";
+import { RouterProvider } from "react-router-dom";
+import { router } from "./router";
+import { useEffect } from "react";
 
-function App() {
+const App = () => {
+  useEffect(() => {
+    // @ts-ignore
+    window.timeStart = new Date().getTime();
+  }, []);
+
   return (
     <Theme>
-      <ZoomPanComponent />
+      <RouterProvider router={router} />
     </Theme>
   );
-}
+};
 
 export default App;

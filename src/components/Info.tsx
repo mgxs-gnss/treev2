@@ -4,8 +4,7 @@ import { Box, Card, Chip, Divider, Fab, Link, Stack } from "@mui/material";
 import { useState } from "react";
 import { JSONData, Mems } from "../interfaces";
 import { compressAddress } from "../utils";
-import { Paragraph } from "./Paragraph";
-import { Search } from "./Search";
+import { Paragraph, Search } from "./";
 
 interface IInfo {
   imageCount: number;
