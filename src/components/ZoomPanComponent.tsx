@@ -11,13 +11,15 @@ const TIME_REFRESH = 5 * 60 * 1000;
 const ZoomPanComponent = () => {
   const [search] = useSearchParams();
   const isHome = search.has("home");
+  const isGNSS = search.has("GNSS");
   const navigate = useNavigate();
 
   const containerRef = useRef<HTMLDivElement>();
   const { highlightedIndex, updateIndex, setHighlightedIndex } =
     useHighlightedIndex(containerRef);
   const { loading, images, imageCount, jsonData } = useMemImages(
-    isHome ? undefined : highlightedIndex
+    isHome ? undefined : highlightedIndex,
+    isGNSS
   );
 
   if (loading || !imageCount || !images) {

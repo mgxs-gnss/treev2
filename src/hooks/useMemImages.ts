@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { JSONData, Mems } from "../interfaces";
-import { setColumns } from "../utils";
+import { getRandomGNSS, setColumns } from "../utils";
 
 interface Data {
   images: Mems[];
   count: number;
 }
 
-const useMemImages = (highlightedIndex?: number) => {
+const useMemImages = (highlightedIndex?: number, isGNSS?: boolean) => {
   const [data, setData] = useState<Data>();
   const [loading, setLoading] = useState<boolean>(false);
   const [jsonData, setJsonData] = useState<JSONData>();
@@ -16,9 +16,17 @@ const useMemImages = (highlightedIndex?: number) => {
     const load = async () => {
       try {
         setLoading(true);
-        const images = await (
-          await fetch("https://api.mgxs.co/mem/list")
-        ).json();
+        let images;
+
+        if (!isGNSS) {
+          images = await (await fetch("https://api.mgxs.co/mem/list")).json();
+        } else {
+          const randArray = getRandomGNSS();
+          images = randArray.map((a) => ({
+            owner: "",
+            url: `https://assets.mgxs.co/${a}.png`,
+          }));
+        }
 
         const count = images.length;
 
@@ -32,7 +40,7 @@ const useMemImages = (highlightedIndex?: number) => {
     };
 
     !data && !loading && load();
-  }, [data, setData, loading]);
+  }, [data, setData, loading, isGNSS]);
 
   useEffect(() => {
     const loadJson = async (index: number) => {
