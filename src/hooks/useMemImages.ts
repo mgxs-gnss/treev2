@@ -24,7 +24,7 @@ const useMemImages = (highlightedIndex?: number, isGNSS?: boolean) => {
           const randArray = getRandomGNSS();
           images = randArray.map((a) => ({
             owner: "",
-            url: `https://assets.mgxs.co/${a}.png`,
+            url: `https://assets.mgxs.co/${a}.jpg`,
           }));
         }
 
