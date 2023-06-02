@@ -21,8 +21,6 @@ const Mem = ({ active, src, index }: IMem) => {
       src={
         src.indexOf("assets.") > -1
           ? src
-          : isHighlighted
-          ? src
           : src.replace(".jpg", "_low.jpg")
       }
       alt=""
