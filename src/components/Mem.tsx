@@ -18,7 +18,13 @@ const Mem = ({ active, src, index }: IMem) => {
       id={index.toString()}
       component="img"
       loading="lazy"
-      src={src.indexOf("assets.") > -1 ? src : src.replace(".jpg", "_low.jpg")}
+      src={
+        src.indexOf("assets.") > -1
+          ? src
+          : isHighlighted
+          ? src
+          : src.replace(".jpg", "_low.jpg")
+      }
       alt=""
       sx={{
         objectFit: "cover",
