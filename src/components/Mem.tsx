@@ -30,7 +30,7 @@ const Mem = ({ active, src, index }: IMem) => {
         objectFit: "cover",
         width: "100%",
         height: `${(window.innerWidth / getColumns()) * 1.2}px`,
-        transform: isHighlighted ? ["scale(6.5)", "scale(2.5)"] : "scale(1)",
+        transform: isHighlighted ? "scale(2.5)" : "scale(1)",
         willChange: "transform",
         boxShadow: isHighlighted
           ? [
