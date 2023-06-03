@@ -1,7 +1,11 @@
 import { Box, CircularProgress } from "@mui/material";
 import { useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { TransformComponent, TransformWrapper } from "react-zoom-pan-pinch";
+import {
+  TransformComponent,
+  TransformWrapper,
+  getMatrixTransformStyles,
+} from "react-zoom-pan-pinch";
 import { useHighlightedIndex, useMemImages } from "../hooks";
 import { getColumns } from "../utils";
 import { Info, Interval, Mem } from "./";
@@ -24,36 +28,36 @@ const ZoomPanComponent = () => {
 
   if (loading || !imageCount || !images) {
     return (
-      <CircularProgress
+      <Box
         sx={{
-          position: "absolute",
+          position: "fixed",
           top: "50%",
           left: " 50%",
           transform: "translate(-50%, -50%)",
         }}
-        color="primary"
-      />
+      >
+        <CircularProgress color="primary" />
+      </Box>
     );
   }
 
   return (
     <>
       <TransformWrapper
-        initialScale={1}
-        maxScale={3}
-        minScale={.5}
+        centerOnInit
+        initialScale={0.1}
+        maxScale={1}
+        minScale={0.05}
         limitToBounds={false}
-        // initialPositionX={20}
-        // initialPositionY={20}
         onInit={updateIndex}
         onPanning={updateIndex}
         onZoom={updateIndex}
         onWheel={updateIndex}
-customTransform={(x: number, y: number, scale: number) =>
-          `translate3d(${x}px, ${y}px, 0px) scale3d(${scale}, ${scale}, ${scale})`
+        customTransform={(x: number, y: number, scale: number) =>
+          getMatrixTransformStyles(x, y, scale)
         }
         wheel={{
-          step: 0.2,
+          step: 0.02,
         }}
       >
         {({ zoomToElement, zoomIn, zoomOut, resetTransform, ...rest }) => {
@@ -107,7 +111,7 @@ customTransform={(x: number, y: number, scale: number) =>
                   sx={{
                     display: "grid",
                     gridTemplateColumns: `repeat(${getColumns()}, 1fr)`,
-                    gap: [1, 2],
+                    gap: [3, 4],
                     width: "100%",
                   }}
                 >

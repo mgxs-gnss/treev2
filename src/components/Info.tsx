@@ -1,11 +1,10 @@
 import { CONTRACT_REVEAL_ADDRESS } from "@gnss/web3";
 import { AlignHorizontalCenter, Info as InfoIcon } from "@mui/icons-material";
-import { Box, Card, Chip, Divider, Fab, Link, Stack, Button } from "@mui/material";
+import { Box, Card, Chip, Divider, Fab, Link, Stack } from "@mui/material";
 import { useState } from "react";
 import { JSONData, Mems } from "../interfaces";
 import { compressAddress } from "../utils";
 import { Paragraph, Search } from "./";
-
 
 interface IInfo {
   imageCount: number;
@@ -33,7 +32,6 @@ const filterOutAttrs = [
   "Prompt",
   "Negative",
   "Crop",
-
 ];
 
 const Info = ({ imageCount, jsonData, images, onChange }: IInfo) => {
@@ -67,15 +65,14 @@ const Info = ({ imageCount, jsonData, images, onChange }: IInfo) => {
         }}
       >
         <Stack spacing={1}>
-
           {jsonData && (
             <>
-            <Stack
-            alignItems="center">
-            <Box ><AlignHorizontalCenter /></Box>
+              <Stack alignItems="center">
+                <Box>
+                  <AlignHorizontalCenter />
+                </Box>
               </Stack>
               <Paragraph>
-
                 <Paragraph variant="inherit" bold>
                   Name:
                 </Paragraph>{" "}
@@ -99,10 +96,13 @@ const Info = ({ imageCount, jsonData, images, onChange }: IInfo) => {
                   </Paragraph>
                 ))}
               <Divider style={{ margin: "20px 0 15px" }} />
-              <Paragraph bold> MEM <Paragraph color="white">from: </Paragraph></Paragraph>
-              <Paragraph variant="subtitle2" bold >
+              <Paragraph bold>
+                {" "}
+                MEM <Paragraph color="white">from: </Paragraph>
+              </Paragraph>
+              <Paragraph variant="subtitle2" bold>
                 GNSS #{jsonData.gnssNum}
-              </Paragraph >
+              </Paragraph>
               <Box>
                 <Link
                   href={`https://opensea.io/assets/ethereum/${CONTRACT_REVEAL_ADDRESS}/${jsonData.gnssNum}`}
@@ -117,8 +117,6 @@ const Info = ({ imageCount, jsonData, images, onChange }: IInfo) => {
                   />
                 </Link>
               </Box>
-
-
             </>
           )}
         </Stack>

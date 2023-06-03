@@ -1,5 +1,4 @@
 import { Box, useTheme } from "@mui/material";
-import { getColumns } from "../utils";
 
 interface IMem {
   active?: number;
@@ -18,30 +17,24 @@ const Mem = ({ active, src, index }: IMem) => {
       id={index.toString()}
       component="img"
       loading="lazy"
-      src={
-        src.indexOf("assets.") > -1
-          ? src
-          : src.replace(".jpg", "_low.jpg")
-      }
+      src={src.indexOf("assets.") > -1 ? src : src.replace(".jpg", "_low.jpg")}
       alt=""
+      style={{
+        transform: `perspective(500px) translateZ(${isHighlighted ? 10 : 0}em)`,
+        width: `${576 / 4}px`,
+        height: `${768 / 4}px`,
+      }}
       sx={{
+        background: "transparent",
         objectFit: "cover",
-        width: "100%",
-        height: `${(window.innerWidth / getColumns()) * 1.2}px`,
-        transform: isHighlighted ? "scale(2.5)" : "scale(1)",
-        willChange: "transform",
+
         boxShadow: isHighlighted
-          ? [
-              `0 0 20px ${theme.palette.grey[900]}`,
-              `20px 20px 50px ${theme.palette.grey[900]}`,
-            ]
+          ? `20px 20px 50px ${theme.palette.grey[900]}`
           : "0px 0px 0px black",
         zIndex: isHighlighted ? "1" : "0",
         transition: "all 0.1s ease-in-out",
-        opacity: isHighlighted ? "1" : isHome ? 1 : ".6",
-        outline: isHighlighted
-          ? [`.1rem solid rgb(225, 225, 225)`, `.5rem solid rgb(225, 225, 225)`]
-          : "none",
+        opacity: isHighlighted ? "1" : isHome ? 1 : ".2",
+        outline: isHighlighted ? `.7rem solid rgb(225, 225, 225)` : "none",
       }}
     />
   );
