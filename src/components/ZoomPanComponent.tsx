@@ -49,6 +49,9 @@ const ZoomPanComponent = () => {
         onPanning={updateIndex}
         onZoom={updateIndex}
         onWheel={updateIndex}
+customTransform={(x: number, y: number, scale: number) =>
+          `translate3d(${x}px, ${y}px, 0px) scale3d(${scale}, ${scale}, ${scale})`
+        }
         wheel={{
           step: 0.2,
         }}
