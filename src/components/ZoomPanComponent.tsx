@@ -39,9 +39,9 @@ const ZoomPanComponent = () => {
   return (
     <>
       <TransformWrapper
-        initialScale={2}
-        maxScale={10}
-        minScale={0.1}
+        initialScale={1}
+        maxScale={3}
+        minScale={.5}
         limitToBounds={false}
         // initialPositionX={20}
         // initialPositionY={20}
@@ -50,11 +50,11 @@ const ZoomPanComponent = () => {
         onZoom={updateIndex}
         onWheel={updateIndex}
         wheel={{
-          step: 0.025,
+          step: 0.2,
         }}
       >
         {({ zoomToElement, zoomIn, zoomOut, resetTransform, ...rest }) => {
-          const intervals = [1000, 750, 5500];
+          const intervals = [2000, 1500, 10500];
 
           return (
             <>
