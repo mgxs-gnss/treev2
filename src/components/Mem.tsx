@@ -1,4 +1,5 @@
 import { Box, useTheme } from "@mui/material";
+import { useSearchParams } from "react-router-dom";
 
 interface IMem {
   active?: number;
@@ -9,7 +10,9 @@ interface IMem {
 const Mem = ({ active, src, index }: IMem) => {
   const theme = useTheme();
 
-  const isHome = new URLSearchParams(window.location.search).has("home");
+  const [search] = useSearchParams();
+  const isHome = search.has("home");
+
   const isHighlighted = active === index;
 
   return (
@@ -19,6 +22,8 @@ const Mem = ({ active, src, index }: IMem) => {
       loading="lazy"
       src={
         src.indexOf("assets.") > -1 || isHighlighted
+          ? src
+          : isHome
           ? src
           : src.replace(".jpg", "_low.jpg")
       }
