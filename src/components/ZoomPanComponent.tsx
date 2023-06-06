@@ -45,7 +45,7 @@ const ZoomPanComponent = () => {
     <>
       <TransformWrapper
         centerOnInit
-        initialScale={0.65}
+        initialScale={1.5}
         maxScale={8.5}
         minScale={0.5}
         limitToBounds={false}
