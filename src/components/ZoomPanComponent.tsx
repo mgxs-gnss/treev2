@@ -46,8 +46,8 @@ const ZoomPanComponent = () => {
       <TransformWrapper
         centerOnInit
         initialScale={0.65}
-        maxScale={1.2}
-        minScale={0.05}
+        maxScale={4}
+        minScale={0.5}
         limitToBounds={false}
         onInit={updateIndex}
         onPanning={updateIndex}
@@ -57,11 +57,11 @@ const ZoomPanComponent = () => {
           getMatrixTransformStyles(x, y, scale)
         }
         wheel={{
-          step: 0.02,
+          step: 0.2,
         }}
       >
         {({ zoomToElement, zoomIn, zoomOut, resetTransform, ...rest }) => {
-          const intervals = [2000, 1500, 10500];
+          const intervals = [4000, 3000, 10500];
 
           return (
             <>
