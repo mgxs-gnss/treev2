@@ -76,8 +76,9 @@ const ZoomPanComponent = () => {
                       navigate(0);
                     }
 
+                    const num = ~~(Math.random() * imageCount);
                     zoomToElement(
-                      (~~(Math.random() * imageCount)).toString(),
+                      num.toString(),
                       undefined,
                       intervals[0],
                       "easeInOutQuad"
