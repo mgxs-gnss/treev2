@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { JSONData, Mems } from "../interfaces";
-import { getRandomGNSS, setColumns } from "../utils";
+import { getRandomGNSS, isMobile, setColumns } from "../utils";
 
 interface Data {
   images: Mems[];
   count: number;
 }
 
-const useMemImages = (highlightedIndex?: number, isGNSS?: boolean) => {
+const useMemImages = (highlightedIndex?: string, isGNSS?: boolean) => {
   const [data, setData] = useState<Data>();
   const [loading, setLoading] = useState<boolean>(false);
   const [jsonData, setJsonData] = useState<JSONData>();
@@ -28,6 +28,10 @@ const useMemImages = (highlightedIndex?: number, isGNSS?: boolean) => {
           }));
         }
 
+        if (isMobile()) {
+          images = images.filter((_: any, index: number) => index < 200);
+        }
+
         const count = images.length;
 
         setData({ images, count });
@@ -43,20 +47,26 @@ const useMemImages = (highlightedIndex?: number, isGNSS?: boolean) => {
   }, [data, setData, loading, isGNSS]);
 
   useEffect(() => {
-    const loadJson = async (index: number) => {
+    const loadJson = async (index: string) => {
       try {
         if (!data) return;
         const { images } = data;
-        const jsonURL = images[index].url.replace(".jpg", ".json");
+        const keys = images.filter(
+          (a) => a.url.split("_")[1].split(".")[0] === index
+        );
+
+        if (!keys[0]?.url) return;
+
+        const jsonURL = keys[0].url.replace(".jpg", ".json");
         const jsonData = await (await fetch(jsonURL)).json();
-        const imgName = images[index].url;
+        const imgName = keys[0].url;
         const lastIndexSlash = imgName.lastIndexOf("/") + 1;
         const gnssNum = imgName
           .substring(lastIndexSlash, imgName.length)
           .replace(".jpg", "")
           .split("_")[1];
 
-        setJsonData({ creator: images[index].owner, gnssNum, ...jsonData });
+        setJsonData({ creator: keys[0].owner, gnssNum, ...jsonData });
       } catch (error) {
         console.error("Error fetching JSON file:", error);
       }
@@ -64,6 +74,7 @@ const useMemImages = (highlightedIndex?: number, isGNSS?: boolean) => {
 
     data &&
       highlightedIndex !== undefined &&
+      highlightedIndex !== null &&
       data.images.length > 0 &&
       loadJson(highlightedIndex);
   }, [highlightedIndex, data]);

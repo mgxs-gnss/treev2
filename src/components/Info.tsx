@@ -96,10 +96,6 @@ const Info = ({ imageCount, jsonData, images, onChange }: IInfo) => {
                   </Paragraph>
                 ))}
               <Divider style={{ margin: "20px 0 15px" }} />
-              <Paragraph bold>
-                {" "}
-                MEM <Paragraph color="white">from: </Paragraph>
-              </Paragraph>
               <Paragraph variant="subtitle2" bold>
                 GNSS #{jsonData.gnssNum}
               </Paragraph>
@@ -130,18 +126,20 @@ const Info = ({ imageCount, jsonData, images, onChange }: IInfo) => {
         sx={{
           position: "fixed",
           zIndex: 5,
-          top: ["20px", 0],
+          top: ["25px", 0],
           width: "100%",
         }}
       >
         <Search images={images} onSearch={onChange} />
-        <Box p={[2, 4]}>
+        <Box p={2}>
           <Chip
             icon={<AlignHorizontalCenter />}
             color="secondary"
             label={`MEMs: ${imageCount}`}
             sx={{
+              borderRadius: "20px",
               boxShadow: 5,
+              height: 40,
             }}
           />
         </Box>
