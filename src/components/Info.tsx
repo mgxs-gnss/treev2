@@ -1,9 +1,9 @@
 import { CONTRACT_REVEAL_ADDRESS } from "@gnss/web3";
 import { AlignHorizontalCenter, Info as InfoIcon } from "@mui/icons-material";
-import { Box, Card, Chip, Divider, Fab, Link, Stack } from "@mui/material";
+import { Box, Card, Divider, Fab, Link, Stack } from "@mui/material";
 import { useState } from "react";
 import { JSONData, Mems } from "../interfaces";
-import { compressAddress } from "../utils";
+import { compressAddress, isMobile } from "../utils";
 import { Paragraph, Search } from "./";
 
 interface IInfo {
@@ -119,30 +119,38 @@ const Info = ({ imageCount, jsonData, images, onChange }: IInfo) => {
       </Card>
 
       <Stack
-        direction={["column", "row"]}
-        alignItems="center"
-        justifyContent="center"
         spacing={2}
         sx={{
           position: "fixed",
           zIndex: 5,
-          top: ["25px", 0],
-          width: "100%",
+          top: "25px",
+          left: "50%",
+          transform: "translateX(-50%)",
         }}
       >
         <Search images={images} onSearch={onChange} />
-        <Box p={2}>
-          <Chip
-            icon={<AlignHorizontalCenter />}
-            color="secondary"
-            label={`MEMs: ${imageCount}`}
-            sx={{
-              borderRadius: "20px",
-              boxShadow: 5,
-              height: 40,
-            }}
-          />
-        </Box>
+        <Card
+          sx={{
+            p: 1,
+            borderRadius: "1rem",
+            background: `rgba(42, 42, 42, .8)`,
+          }}
+        >
+          <Stack alignItems="center" spacing={1}>
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <AlignHorizontalCenter color="primary" />
+              <Paragraph bold>
+                MEMs: {imageCount}
+                {isMobile() ? "+" : ""}
+              </Paragraph>
+            </Stack>
+            {isMobile() && (
+              <Paragraph variant="caption" fontSize={11}>
+                View all MEMs on Desktop
+              </Paragraph>
+            )}
+          </Stack>
+        </Card>
       </Stack>
     </Box>
   );

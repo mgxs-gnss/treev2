@@ -8,7 +8,7 @@
     "@gnss/common": "github:mgxs-gnss/common",
     "@gnss/web3": "github:mgxs-gnss/web3",
     "@mui/icons-material": "^5.11.16",
-    "@mui/material": "^5.12.1",
+    "@mui/material": "^5.13.7",
     "@pixi/react": "^7.1.0",
     "@sentry/react": "^7.52.1",
     "@testing-library/jest-dom": "^5.16.5",
