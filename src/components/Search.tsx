@@ -16,7 +16,6 @@ interface Props {
 
 const Search = ({ onSearch, images }: Props) => {
   const [text, setText] = useState<string | null>(null);
-  const [notFound, setNotFound] = useState(false);
   const theme = useTheme();
 
   const options = useMemo(
@@ -31,12 +30,10 @@ const Search = ({ onSearch, images }: Props) => {
   );
 
   const onSubmit = () => {
-    setNotFound(false);
     text && onSearch?.(text);
   };
 
   const onChangeText = (text: string) => {
-    setNotFound(false);
     text && setText(text.replace(/[\D\s]/, ""));
   };
 
@@ -48,9 +45,7 @@ const Search = ({ onSearch, images }: Props) => {
         borderRadius: "20px",
         border: "0 !important",
         boxShadow: "none",
-        background: notFound
-          ? theme.palette.error.main
-          : theme.palette.grey[800],
+        background: theme.palette.grey[800],
       }}
       onSubmit={(event) => {
         event.preventDefault();
@@ -78,7 +73,7 @@ const Search = ({ onSearch, images }: Props) => {
               },
               borderRadius: "20px",
               border: "0 !important",
-              width: "200px",
+              width: "160px",
               boxShadow: "none",
             }}
             label="GNSS Number"

@@ -1,9 +1,8 @@
-import { Chip } from "@mui/material";
 import { memo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Info, Interval } from ".";
 import { JSONData, Mems } from "../interfaces";
-import { intervals, isMobile } from "../utils";
+import { intervals } from "../utils";
 
 type Props = {
   imageCount: number;
@@ -66,17 +65,6 @@ const UI = memo(function UI({
           }}
           imageCount={imageCount}
           jsonData={jsonData}
-        />
-      )}
-      {isMobile() && (
-        <Chip
-          sx={{
-            position: "fixed",
-            bottom: 0,
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-          }}
-          label="Full experience on Desktop"
         />
       )}
     </>

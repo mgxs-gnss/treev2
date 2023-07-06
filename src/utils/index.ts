@@ -15,7 +15,7 @@ export const getColumns = () => COLUMNS;
 
 const allGNSS = Array.from(Array(9676).keys());
 
-const randomArray = (elements: any[]) => {
+export const randomArray = (elements: any[], maxCount?: number) => {
   var rr;
   if (typeof elements === "number") {
     rr = [];
@@ -26,10 +26,14 @@ const randomArray = (elements: any[]) => {
 
   for (i = rr.length; i--; )
     rr.push(rr.splice(Math.floor(Math.random() * (i + 1)), 1)[0]);
+
+  if (maxCount) {
+    rr = rr.slice(0, maxCount);
+  }
   return rr;
 };
 
-export const getRandomGNSS = () => randomArray(allGNSS).slice(0, 100);
+export const getRandomGNSS = () => randomArray(allGNSS, 100);
 
 export const intervals = [4000, 3000, 10500];
 
