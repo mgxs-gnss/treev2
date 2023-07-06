@@ -7,7 +7,7 @@ import {
   getMatrixTransformStyles,
 } from "react-zoom-pan-pinch";
 import { useHighlightedIndex, useMemImages } from "../hooks";
-import { getColumns, intervals } from "../utils";
+import { getColumns, getScale, intervals } from "../utils";
 import { Mem, UI } from "./";
 
 const ZoomPanComponent = () => {
@@ -30,12 +30,13 @@ const ZoomPanComponent = () => {
         ref={containerRef}
         style={{
           display: "grid",
+          willChange: "transform",
           gridTemplateColumns: `repeat(${getColumns()}, 1fr)`,
-          gap: theme.spacing(3),
+          gap: theme.spacing(5),
           width: "100%",
         }}
       >
-        {images?.map((src, index) => (
+        {images?.map((src) => (
           <Mem
             key={src.url}
             index={src.url.split("_")[1].split(".")[0]}
@@ -75,9 +76,9 @@ const ZoomPanComponent = () => {
     <>
       <TransformWrapper
         centerOnInit
-        initialScale={window.innerWidth < 1024 ? 0.5 : 1.25}
-        maxScale={8.5}
-        minScale={0.5}
+        initialScale={0.25}
+        maxScale={0.6}
+        minScale={0.1}
         limitToBounds={false}
         onInit={updateIndex}
         onPanning={updateIndex}

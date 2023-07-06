@@ -28,6 +28,8 @@ const useMemImages = (highlightedIndex?: string, isGNSS?: boolean) => {
           }));
         }
 
+        // images = images.filter((_: any, index: number) => index < 1000);
+
         const count = images.length;
 
         setData({ images, count });
@@ -50,6 +52,9 @@ const useMemImages = (highlightedIndex?: string, isGNSS?: boolean) => {
         const keys = images.filter(
           (a) => a.url.split("_")[1].split(".")[0] === index
         );
+
+        if (!keys[0]?.url) return;
+
         const jsonURL = keys[0].url.replace(".jpg", ".json");
         const jsonData = await (await fetch(jsonURL)).json();
         const imgName = keys[0].url;

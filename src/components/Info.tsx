@@ -126,12 +126,12 @@ const Info = ({ imageCount, jsonData, images, onChange }: IInfo) => {
         sx={{
           position: "fixed",
           zIndex: 5,
-          top: ["20px", 0],
+          top: ["25px", 0],
           width: "100%",
         }}
       >
         <Search images={images} onSearch={onChange} />
-        <Box p={4}>
+        <Box p={2}>
           <Chip
             icon={<AlignHorizontalCenter />}
             color="secondary"

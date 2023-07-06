@@ -32,3 +32,5 @@ const randomArray = (elements: any[]) => {
 export const getRandomGNSS = () => randomArray(allGNSS).slice(0, 100);
 
 export const intervals = [4000, 3000, 10500];
+
+export const getScale = () => (window.innerWidth < 1024 ? 2 : 1);
