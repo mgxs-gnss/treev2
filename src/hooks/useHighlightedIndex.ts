@@ -1,38 +1,50 @@
-import { MutableRefObject, useCallback, useState } from "react";
+import { MutableRefObject, useState } from "react";
+import { useDebouncedCallback } from "use-debounce";
 
 const useHighlightedIndex = (
-  container: MutableRefObject<HTMLDivElement | undefined>
+  container: MutableRefObject<HTMLDivElement | null>
 ) => {
-  const [highlightedIndex, setHighlightedIndex] = useState<number>();
+  const [highlightedIndex, setHighlightedIndex] = useState<string>();
 
-  const updateIndex = useCallback(() => {
+  const updateIndex = useDebouncedCallback(() => {
     const center = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
     let minDistance = Infinity;
-    let closestIndex = 0;
+    let closestIndex = "";
 
-    const images = container?.current?.getElementsByTagName("img");
+    const images = container?.current?.querySelectorAll("[data-container]");
 
-    images &&
-      Object.values(images).forEach((ref, index) => {
-        if (ref) {
-          const rect = ref.getBoundingClientRect();
-          const imageCenter = {
-            x: rect.left + rect.width / 2,
-            y: rect.top + rect.height / 2,
-          };
-          const dx = center.x - imageCenter.x;
-          const dy = center.y - imageCenter.y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
+    if (!images) return;
 
-          if (distance < minDistance) {
-            minDistance = distance;
-            closestIndex = index;
-          }
-        }
-      });
+    const visibleImages = Object.values(images).filter((img) => {
+      const rect = img.getBoundingClientRect();
+      return (
+        rect.top >= 0 &&
+        rect.left >= 0 &&
+        rect.bottom <=
+          (window.innerHeight || document.documentElement.clientHeight) &&
+        rect.right <=
+          (window.innerWidth || document.documentElement.clientWidth)
+      );
+    });
+
+    visibleImages.forEach((ref) => {
+      const rect = ref.getBoundingClientRect();
+      const imageCenter = {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
+      };
+      const dx = center.x - imageCenter.x;
+      const dy = center.y - imageCenter.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestIndex = ref.id;
+      }
+    });
 
     setHighlightedIndex(closestIndex);
-  }, [container]);
+  }, 500);
 
   return { highlightedIndex, updateIndex, setHighlightedIndex };
 };

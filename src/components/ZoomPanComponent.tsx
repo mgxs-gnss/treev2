@@ -1,30 +1,60 @@
-import { Box, CircularProgress } from "@mui/material";
-import { useRef } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { Box, CircularProgress, useTheme } from "@mui/material";
+import { useMemo, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   TransformComponent,
   TransformWrapper,
   getMatrixTransformStyles,
 } from "react-zoom-pan-pinch";
 import { useHighlightedIndex, useMemImages } from "../hooks";
-import { getColumns } from "../utils";
-import { Info, Interval, Mem } from "./";
-
-const TIME_REFRESH = 5 * 60 * 1000;
+import { getColumns, intervals } from "../utils";
+import { Mem, UI } from "./";
 
 const ZoomPanComponent = () => {
+  const theme = useTheme();
   const [search] = useSearchParams();
   const isHome = search.has("home");
   const isGNSS = search.has("GNSS");
-  const navigate = useNavigate();
 
-  const containerRef = useRef<HTMLDivElement>();
+  const containerRef = useRef<HTMLDivElement>(null);
   const { highlightedIndex, updateIndex, setHighlightedIndex } =
     useHighlightedIndex(containerRef);
   const { loading, images, imageCount, jsonData } = useMemImages(
     isHome ? undefined : highlightedIndex,
     isGNSS
   );
+
+  const content = useMemo(
+    () => (
+      <div
+        ref={containerRef}
+        style={{
+          display: "grid",
+          gridTemplateColumns: `repeat(${getColumns()}, 1fr)`,
+          gap: theme.spacing(3),
+          width: "100%",
+        }}
+      >
+        {images?.map((src, index) => (
+          <Mem
+            key={src.url}
+            index={src.url.split("_")[1].split(".")[0]}
+            src={src.url}
+            active={
+              isHome
+                ? undefined
+                : highlightedIndex === src.url.split("_")[1].split(".")[0]
+            }
+          />
+        ))}
+      </div>
+    ),
+    [images, containerRef, isHome, highlightedIndex, theme]
+  );
+
+  const onUpdateIndex = () => {
+    updateIndex();
+  };
 
   if (loading || !imageCount || !images) {
     return (
@@ -45,7 +75,7 @@ const ZoomPanComponent = () => {
     <>
       <TransformWrapper
         centerOnInit
-        initialScale={1.5}
+        initialScale={window.innerWidth < 1024 ? 0.5 : 1.25}
         maxScale={8.5}
         minScale={0.5}
         limitToBounds={false}
@@ -60,72 +90,27 @@ const ZoomPanComponent = () => {
           step: 0.2,
         }}
       >
-        {({ zoomToElement, zoomIn, zoomOut, resetTransform, ...rest }) => {
-          const intervals = [4000, 3000, 10500];
+        {({ zoomToElement, resetTransform }) => {
+          const onZoomToElement = (el: string, scale?: number) => {
+            zoomToElement(el, scale, intervals[0], "easeInOutQuad");
+          };
+
+          const onResetTransform = () => {
+            resetTransform(intervals[1], "easeInOutQuad");
+          };
 
           return (
             <>
-              {isHome && (
-                <Interval
-                  interval={intervals.reduce((a, b) => a + b, 0)}
-                  callback={() => {
-                    const now = new Date().getTime();
-
-                    //@ts-ignore
-                    if (now - window.timeStart >= TIME_REFRESH) {
-                      navigate(0);
-                    }
-
-                    const num = ~~(Math.random() * imageCount);
-                    zoomToElement(
-                      num.toString(),
-                      undefined,
-                      intervals[0],
-                      "easeInOutQuad"
-                    );
-                    setTimeout(() => {
-                      resetTransform(intervals[1], "easeInOutQuad");
-                    }, intervals[2]);
-                  }}
-                />
-              )}
-
-              {!isHome && (
-                <Info
-                  images={images}
-                  onChange={(num: string) => {
-                    if (num === "") {
-                      setHighlightedIndex(undefined);
-                      resetTransform(intervals[1], "easeInOutQuad");
-                    } else {
-                      zoomToElement(`${num}`, 2, intervals[0], "easeInOutQuad");
-                      setTimeout(updateIndex, intervals[0]);
-                    }
-                  }}
-                  imageCount={imageCount}
-                  jsonData={jsonData}
-                />
-              )}
-              <TransformComponent>
-                <Box
-                  ref={containerRef}
-                  sx={{
-                    display: "grid",
-                    gridTemplateColumns: `repeat(${getColumns()}, 1fr)`,
-                    gap: [3, 4],
-                    width: "100%",
-                  }}
-                >
-                  {images.map((src, index) => (
-                    <Mem
-                      index={index}
-                      src={src.url}
-                      active={isHome ? undefined : highlightedIndex}
-                      key={index}
-                    />
-                  ))}
-                </Box>
-              </TransformComponent>
+              <UI
+                onZoomToElement={onZoomToElement}
+                onResetTransform={onResetTransform}
+                imageCount={imageCount}
+                images={images}
+                jsonData={jsonData}
+                onUpdateIndex={onUpdateIndex}
+                setHighlightedIndex={setHighlightedIndex}
+              />
+              <TransformComponent>{content}</TransformComponent>
             </>
           );
         }}
