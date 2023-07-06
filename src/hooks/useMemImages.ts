@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { JSONData, Mems } from "../interfaces";
-import { getRandomGNSS, setColumns } from "../utils";
+import { getRandomGNSS, isMobile, setColumns } from "../utils";
 
 interface Data {
   images: Mems[];
@@ -28,7 +28,9 @@ const useMemImages = (highlightedIndex?: string, isGNSS?: boolean) => {
           }));
         }
 
-        // images = images.filter((_: any, index: number) => index < 1000);
+        if (isMobile()) {
+          images = images.filter((_: any, index: number) => index < 200);
+        }
 
         const count = images.length;
 

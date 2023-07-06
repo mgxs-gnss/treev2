@@ -1,5 +1,5 @@
 import { Box, CircularProgress, useTheme } from "@mui/material";
-import { useMemo, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   TransformComponent,
@@ -53,9 +53,9 @@ const ZoomPanComponent = () => {
     [images, containerRef, isHome, highlightedIndex, theme]
   );
 
-  const onUpdateIndex = () => {
+  const onUpdateIndex = useCallback(() => {
     updateIndex();
-  };
+  }, [updateIndex]);
 
   if (loading || !imageCount || !images) {
     return (
@@ -80,10 +80,10 @@ const ZoomPanComponent = () => {
         maxScale={0.6}
         minScale={0.1}
         limitToBounds={false}
-        onInit={updateIndex}
-        onPanning={updateIndex}
-        onZoom={updateIndex}
-        onWheel={updateIndex}
+        onInit={onUpdateIndex}
+        onPanning={onUpdateIndex}
+        onZoom={onUpdateIndex}
+        onWheel={onUpdateIndex}
         customTransform={(x: number, y: number, scale: number) =>
           getMatrixTransformStyles(x, y, scale)
         }
