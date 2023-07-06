@@ -7,7 +7,7 @@ import {
   getMatrixTransformStyles,
 } from "react-zoom-pan-pinch";
 import { useHighlightedIndex, useMemImages } from "../hooks";
-import { getColumns, getScale, intervals } from "../utils";
+import { getColumns, intervals } from "../utils";
 import { Mem, UI } from "./";
 
 const ZoomPanComponent = () => {
