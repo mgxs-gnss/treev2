@@ -1,9 +1,9 @@
+import { Chip } from "@mui/material";
+import { memo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Info, Interval } from ".";
 import { JSONData, Mems } from "../interfaces";
 import { intervals, isMobile } from "../utils";
-import { memo } from "react";
-import { Card, Chip } from "@mui/material";
 
 type Props = {
   imageCount: number;
