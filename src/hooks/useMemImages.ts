@@ -29,7 +29,7 @@ const useMemImages = (highlightedIndex?: string, isGNSS?: boolean) => {
         }
 
         if (isMobile()) {
-          images = randomArray(images, 200);
+          images = randomArray(images, 100);
         }
 
         const count = images.length;
