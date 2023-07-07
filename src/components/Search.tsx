@@ -22,6 +22,7 @@ const Search = ({ onSearch, images }: Props) => {
     () => [
       ...new Set(
         images
+          .filter((a) => a.owner !== "Anonymous" && !a.owner.includes("0x"))
           .map((a) => a.url.split("_")[1].split(".")[0])
           .sort((a, b) => Number(a) - Number(b))
       ),
