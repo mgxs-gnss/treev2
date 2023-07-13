@@ -51,9 +51,7 @@ const useMemImages = (highlightedIndex?: string, isGNSS?: boolean) => {
       try {
         if (!data) return;
         const { images } = data;
-        const keys = images.filter(
-          (a) => a.url.split("_")[1].split(".")[0] === index
-        );
+        const keys = images.filter((a) => a.url === index);
 
         if (!keys[0]?.url) return;
 

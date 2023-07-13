@@ -23,8 +23,8 @@ const Search = ({ onSearch, images }: Props) => {
       ...new Set(
         images
           .filter((a) => a.owner !== "Anonymous" && !a.owner.includes("0x"))
-          .map((a) => a.url.split("_")[1].split(".")[0])
-          .sort((a, b) => Number(a) - Number(b))
+          .map((a) => ({ ...a, gnss: a.url.split("_")[1].split(".")[0] }))
+          .sort((a, b) => Number(a.gnss) - Number(b.gnss))
       ),
     ],
     [images]
@@ -35,9 +35,13 @@ const Search = ({ onSearch, images }: Props) => {
   };
 
   const onChangeText = (text: string) => {
-    text && setText(text.replace(/[\D\s]/, ""));
+    text && setText(text);
   };
 
+  const compareValueToOption = (option: any, value: any) =>
+    option.gnss === value.gnss;
+
+  //4197
   return (
     <Stack
       direction="row"
@@ -54,14 +58,13 @@ const Search = ({ onSearch, images }: Props) => {
       }}
     >
       <Autocomplete
-        value={text}
+        isOptionEqualToValue={compareValueToOption}
+        getOptionLabel={(options) => options.gnss}
         onInputChange={(_, newInputValue) => {
-          // console.log("onInputChange", newInputValue);
           onChangeText(newInputValue);
         }}
-        onChange={(_, newValue: string | null) => {
-          // console.log("onChange", newValue);
-          onChangeText(newValue ?? "");
+        onChange={(_, newValue) => {
+          onChangeText(newValue?.url || "");
         }}
         options={options}
         renderInput={(params) => (

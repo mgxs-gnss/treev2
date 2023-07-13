@@ -39,13 +39,9 @@ const ZoomPanComponent = () => {
         {images?.map((src) => (
           <Mem
             key={src.url}
-            index={src.url.split("_")[1].split(".")[0]}
+            index={src.url}
             src={src.url}
-            active={
-              isHome
-                ? undefined
-                : highlightedIndex === src.url.split("_")[1].split(".")[0]
-            }
+            active={isHome ? undefined : highlightedIndex === src.url}
           />
         ))}
       </div>
