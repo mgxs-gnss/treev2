@@ -13,8 +13,21 @@ jobs:
         run: |
           echo "${{ vars.REACT_ENV }}" > .env
 
-      - name: Install npm packages
-        run: npm install
+      - name: Cache node modules
+        uses: actions/cache@v2
+        id: cache-node-modules
+        with:
+          # Define multiple paths as an array
+          path: |
+            node_modules
+            ~/.npm
+          key: ${{ runner.OS }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.OS }}-node-
+
+      - name: Install Dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: npm ci
 
       - name: Build react
         run: npm run build
