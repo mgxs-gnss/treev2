@@ -13,3 +13,33 @@ body {
   width: 100dvw !important;
   height: 100dvh !important;
 }
+
+.mem {
+ will-change: transform, box-shadow, outline, opacity, z-index;
+ background: transparent;
+ object-fit: cover; 
+ overflow: hidden;
+ transition: all 0.1s ease-out;
+ background-repeat: no-repeat;
+ transform: perspective(500px) translateZ(0em);
+ box-shadow: 0px 0px 0px rgb(33, 33, 33);
+ z-index: 0;
+ outline: none;
+ opacity: .2;
+ width: 576px;
+ height: 768px;
+ background-position: center center;
+ background-size: contain;
+}
+
+.mem-highlight {
+  transform: perspective(500px) translateZ(10em);
+  box-shadow: 0px 0px 0px black;
+  z-index: 1;
+  opacity: 1;
+  outline: 2rem solid rgb(225, 225, 225);
+}
+
+.mem-home {
+  opacity: 1 !important;
+}

@@ -1,57 +1,24 @@
-import { Box, CircularProgress, useTheme } from "@mui/material";
-import { useCallback, useMemo, useRef } from "react";
+import { Box, CircularProgress } from "@mui/material";
 import { useSearchParams } from "react-router-dom";
 import {
-  TransformComponent,
   TransformWrapper,
   getMatrixTransformStyles,
 } from "react-zoom-pan-pinch";
 import { useHighlightedIndex, useMemImages } from "../hooks";
-import { getColumns, intervals } from "../utils";
-import { Mem, UI } from "./";
+import { isMobile } from "../utils";
+import { ZoomContainer } from "./ZoomContainer";
 
 const ZoomPanComponent = () => {
-  const theme = useTheme();
   const [search] = useSearchParams();
   const isHome = search.has("home");
   const isGNSS = search.has("GNSS");
 
-  const containerRef = useRef<HTMLDivElement>(null);
   const { highlightedIndex, updateIndex, setHighlightedIndex } =
-    useHighlightedIndex(containerRef);
+    useHighlightedIndex();
   const { loading, images, imageCount, jsonData } = useMemImages(
     isHome ? undefined : highlightedIndex,
     isGNSS
   );
-
-  const content = useMemo(
-    () => (
-      <div
-        ref={containerRef}
-        style={{
-          display: "grid",
-          willChange: "transform",
-          gridTemplateColumns: `repeat(${getColumns()}, 1fr)`,
-          gap: theme.spacing(5),
-          width: "100%",
-        }}
-      >
-        {images?.map((src) => (
-          <Mem
-            key={src.url}
-            index={src.url}
-            src={src.url}
-            active={isHome ? undefined : highlightedIndex === src.url}
-          />
-        ))}
-      </div>
-    ),
-    [images, containerRef, isHome, highlightedIndex, theme]
-  );
-
-  const onUpdateIndex = useCallback(() => {
-    updateIndex();
-  }, [updateIndex]);
 
   if (loading || !imageCount || !images) {
     return (
@@ -69,50 +36,32 @@ const ZoomPanComponent = () => {
   }
 
   return (
-    <>
-      <TransformWrapper
-        centerOnInit
-        initialScale={0.25}
-        maxScale={0.6}
-        minScale={0.1}
-        limitToBounds={false}
-        onInit={onUpdateIndex}
-        onPanning={onUpdateIndex}
-        onZoom={onUpdateIndex}
-        onWheel={onUpdateIndex}
-        customTransform={(x: number, y: number, scale: number) =>
-          getMatrixTransformStyles(x, y, scale)
-        }
-        wheel={{
-          step: 0.2,
-        }}
-      >
-        {({ zoomToElement, resetTransform }) => {
-          const onZoomToElement = (el: string, scale?: number) => {
-            zoomToElement(el, scale, intervals[0], "easeInOutQuad");
-          };
-
-          const onResetTransform = () => {
-            resetTransform(intervals[1], "easeInOutQuad");
-          };
-
-          return (
-            <>
-              <UI
-                onZoomToElement={onZoomToElement}
-                onResetTransform={onResetTransform}
-                imageCount={imageCount}
-                images={images}
-                jsonData={jsonData}
-                onUpdateIndex={onUpdateIndex}
-                setHighlightedIndex={setHighlightedIndex}
-              />
-              <TransformComponent>{content}</TransformComponent>
-            </>
-          );
-        }}
-      </TransformWrapper>
-    </>
+    <TransformWrapper
+      centerOnInit
+      initialScale={0.25}
+      maxScale={0.6}
+      minScale={isMobile() ? 0.25 : 0.1}
+      limitToBounds={false}
+      onInit={updateIndex}
+      onPanning={updateIndex}
+      onZoom={updateIndex}
+      onWheel={updateIndex}
+      customTransform={(x: number, y: number, scale: number) =>
+        getMatrixTransformStyles(x, y, scale)
+      }
+      wheel={{
+        step: 0.2,
+      }}
+    >
+      <ZoomContainer
+        imageCount={imageCount}
+        images={images}
+        jsonData={jsonData}
+        highlightedIndex={highlightedIndex}
+        onUpdateIndex={updateIndex}
+        setHighlightedIndex={setHighlightedIndex}
+      />
+    </TransformWrapper>
   );
 };
 

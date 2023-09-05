@@ -9,6 +9,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Create env file
+        run: |
+          echo "${{ vars.REACT_ENV }}" > .env
+
       - name: Install npm packages
         run: npm install
 

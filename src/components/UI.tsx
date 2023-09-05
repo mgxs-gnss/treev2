@@ -3,11 +3,10 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Info, Interval } from ".";
 import { JSONData, Mems } from "../interfaces";
 import { intervals } from "../utils";
+import { useControls } from "react-zoom-pan-pinch";
 
 type Props = {
   imageCount: number;
-  onResetTransform(): void;
-  onZoomToElement(node: string | HTMLElement, scale?: number): void;
   setHighlightedIndex(num?: string): void;
   onUpdateIndex(): void;
   images: Mems[];
@@ -18,8 +17,6 @@ const TIME_REFRESH = 5 * 60 * 1000;
 
 const UI = memo(function UI({
   imageCount,
-  onZoomToElement,
-  onResetTransform,
   setHighlightedIndex,
   onUpdateIndex,
   images,
@@ -29,6 +26,7 @@ const UI = memo(function UI({
   const isHome = search.has("home");
 
   const navigate = useNavigate();
+  const { zoomToElement, resetTransform } = useControls();
 
   return (
     <>
@@ -44,8 +42,8 @@ const UI = memo(function UI({
             }
 
             const num = ~~(Math.random() * imageCount);
-            onZoomToElement(num.toString());
-            setTimeout(onResetTransform, intervals[2]);
+            zoomToElement(num.toString());
+            setTimeout(resetTransform, intervals[2]);
           }}
         />
       )}
@@ -56,9 +54,9 @@ const UI = memo(function UI({
           onChange={(num: string) => {
             if (num === "") {
               setHighlightedIndex(undefined);
-              onResetTransform();
+              resetTransform();
             } else {
-              onZoomToElement(`${num}`, 2);
+              zoomToElement(`${num}`, 0.5);
               setHighlightedIndex(num);
               setTimeout(onUpdateIndex, intervals[0]);
             }
