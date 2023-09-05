@@ -1,15 +1,44 @@
-name: GNSS pipeline
-on:
-  push:
-    branches:
-      - main
+name: GNSS pipeline - Tree
+on: push
 
 jobs:
-  Deploy:
+  InstallAndBuild:
+    name: Install, Build and Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+
+      - name: Install npm packages
+        run: npm install
+
+      - name: Build react
+        run: npm run build
+
+      - name: Cache build
+        if: github.ref == 'refs/heads/main'
+        uses: actions/cache@v2
+        with:
+          path: ./build
+          key: ${{ runner.os }}-build-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-
+
+  Deploy:
+    needs: InstallAndBuild
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Restore cached build
+        uses: actions/cache@v2
+        with:
+          path: ./build
+          key: ${{ runner.os }}-build-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -18,18 +47,9 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ vars.AWS_REGION }}
 
-      - name: Install npm packages
-        run: npm install
-
-      # - name: Create env file
-      #   run: |
-      #     echo "${{ vars.REACT_ENV }}" > .env
-
-      - name: Build react
-        run: npm run build
-
       - name: Sync to S3
         run: aws s3 sync ./build ${{ secrets.AWS_S3_BUCKET }} --follow-symlinks --delete
 
       - name: Invalidate CloudFront
+        if: github.ref == 'refs/heads/main'
         run: aws cloudfront create-invalidation --distribution-id ${{ secrets.AWS_CLOUDFRONT }} --paths "/*"
