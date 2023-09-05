@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { JSONData, Mems } from "../interfaces";
 import { getRandomGNSS, isMobile, randomArray, setColumns } from "../utils";
+import { API } from "../config";
 
 interface Data {
   images: Mems[];
@@ -12,42 +13,8 @@ const useMemImages = (highlightedIndex?: string, isGNSS?: boolean) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [jsonData, setJsonData] = useState<JSONData>();
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        setLoading(true);
-        let images;
-
-        if (!isGNSS) {
-          images = await (await fetch("https://api.mgxs.co/mem/list")).json();
-        } else {
-          const randArray = getRandomGNSS();
-          images = randArray.map((a) => ({
-            owner: "",
-            url: `https://assets.mgxs.co/${a}.jpg`,
-          }));
-        }
-
-        if (isMobile()) {
-          images = randomArray(images, 100);
-        }
-
-        const count = images.length;
-
-        setData({ images, count });
-        setColumns(count);
-      } catch (e) {
-        console.log(e);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    !data && !loading && load();
-  }, [data, setData, loading, isGNSS]);
-
-  useEffect(() => {
-    const loadJson = async (index: string) => {
+  const loadJson = useCallback(
+    async (index: string) => {
       try {
         if (!data) return;
         const { images } = data;
@@ -68,14 +35,49 @@ const useMemImages = (highlightedIndex?: string, isGNSS?: boolean) => {
       } catch (error) {
         console.error("Error fetching JSON file:", error);
       }
-    };
+    },
+    [data, setJsonData]
+  );
+
+  const load = useCallback(async () => {
+    try {
+      setLoading(true);
+      let images;
+
+      if (!isGNSS) {
+        images = await (await fetch(`${API}/mem/list`)).json();
+      } else {
+        const randArray = getRandomGNSS();
+        images = randArray.map((a) => ({
+          owner: "",
+          url: `https://assets.mgxs.co/${a}.jpg`,
+        }));
+      }
+
+      if (isMobile()) {
+        images = randomArray(images, 150);
+      }
+
+      const count = images.length;
+
+      setData({ images, count });
+      setColumns(count);
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setLoading(false);
+    }
+  }, [setLoading, setColumns, setData]);
+
+  useEffect(() => {
+    !data && load();
 
     data &&
       highlightedIndex !== undefined &&
       highlightedIndex !== null &&
       data.images.length > 0 &&
       loadJson(highlightedIndex);
-  }, [highlightedIndex, data]);
+  }, [highlightedIndex, setData, load, isGNSS, data]);
 
   return {
     images: data?.images,

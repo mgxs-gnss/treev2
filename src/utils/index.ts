@@ -37,8 +37,6 @@ export const getRandomGNSS = () => randomArray(allGNSS, 100);
 
 export const intervals = [4000, 3000, 10500];
 
-export const getScale = () => (window.innerWidth < 1024 ? 2 : 1);
-
 export const isMobile = () => {
   const userAgent = navigator.userAgent;
   const mobileRegex =
@@ -47,3 +45,7 @@ export const isMobile = () => {
 
   return isMobile;
 };
+
+export const isDev = () =>
+  window.location.href.includes("localhost") ||
+  window.location.href.includes("dev-mem.");

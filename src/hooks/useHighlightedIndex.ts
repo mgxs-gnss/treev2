@@ -1,9 +1,7 @@
-import { MutableRefObject, useState } from "react";
+import { useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
 
-const useHighlightedIndex = (
-  container: MutableRefObject<HTMLDivElement | null>
-) => {
+const useHighlightedIndex = () => {
   const [highlightedIndex, setHighlightedIndex] = useState<string>();
 
   const updateIndex = useDebouncedCallback(() => {
@@ -11,7 +9,7 @@ const useHighlightedIndex = (
     let minDistance = Infinity;
     let closestIndex = "";
 
-    const images = container?.current?.querySelectorAll("[data-container]");
+    const images = document.body.querySelectorAll("[data-container]");
 
     if (!images) return;
 
