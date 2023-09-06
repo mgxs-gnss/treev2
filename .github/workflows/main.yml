@@ -32,14 +32,13 @@ jobs:
       - name: Build react
         run: npm run build
 
-      - name: Cache build
-        if: github.ref == 'refs/heads/main'
-        uses: actions/cache@v3
+      - name: Create production artifacts
+        uses: actions/upload-artifact@v3
         with:
+          name: build
           path: ./build
-          key: ${{ runner.os }}-build-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-build-
+          if-no-files-found: error
+          retention-days: 1
 
   Deploy:
     needs: InstallAndBuild
@@ -49,13 +48,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Restore cached build
-        uses: actions/cache@v3
+      - name: Download artifact
+        uses: actions/download-artifact@v3
         with:
+          name: build
           path: ./build
-          key: ${{ runner.os }}-build-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-build-
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
