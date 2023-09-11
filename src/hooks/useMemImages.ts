@@ -55,7 +55,7 @@ const useMemImages = (highlightedIndex?: string, isGNSS?: boolean) => {
       }
 
       if (isMobile()) {
-        images = randomArray(images, 150);
+        images = randomArray(images, 200);
       }
 
       const count = images.length;

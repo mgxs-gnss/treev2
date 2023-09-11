@@ -3,6 +3,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import checker from "vite-plugin-checker";
+import million from "million/compiler";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -14,6 +15,7 @@ export default defineConfig({
     port: 3002,
   },
   plugins: [
+    million.vite({ auto: true }),
     react(),
     checker({
       typescript: true,

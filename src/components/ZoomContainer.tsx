@@ -5,6 +5,7 @@ import { TransformComponent } from "react-zoom-pan-pinch";
 import { getColumns } from "../utils";
 import { Mem } from "./Mem";
 import { UI } from "./UI";
+import { For } from "million/react";
 
 type Props = {
   imageCount: number;
@@ -46,14 +47,17 @@ const ZoomContainer = ({
             width: "100%",
           }}
         >
-          {images?.map((src) => (
-            <Mem
-              key={src.url}
-              index={src.url}
-              src={src.url}
-              active={isHome ? undefined : highlightedIndex === src.url}
-            />
-          ))}
+          <For each={images}>
+            {({ url }) => (
+              <Mem
+                key={url}
+                index={url}
+                src={url}
+                isHome={isHome}
+                active={isHome ? undefined : highlightedIndex === url}
+              />
+            )}
+          </For>
         </div>
       </TransformComponent>
     </>

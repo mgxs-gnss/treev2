@@ -20,6 +20,8 @@ const ZoomPanComponent = () => {
     isGNSS
   );
 
+  const isMob = isMobile();
+
   if (loading || !imageCount || !images) {
     return (
       <Box
@@ -40,8 +42,8 @@ const ZoomPanComponent = () => {
       centerOnInit
       initialScale={0.25}
       maxScale={0.6}
-      minScale={isMobile() ? 0.25 : 0.1}
-      limitToBounds={false}
+      minScale={isMob ? 0.25 : 0.1}
+      limitToBounds={isMob}
       onInit={updateIndex}
       onPanning={updateIndex}
       onZoom={updateIndex}
