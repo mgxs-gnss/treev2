@@ -1,4 +1,4 @@
-import { Theme } from "@gnss/common";
+import { Theme } from "@mgxs/common";
 import { RouterProvider } from "react-router-dom";
 import { router } from "./router";
 import { useEffect } from "react";

@@ -12,7 +12,7 @@ export default defineConfig({
     minify: "esbuild",
   },
   server: {
-    port: 3002,
+    port: 3004,
   },
   plugins: [
     million.vite({ auto: true }),

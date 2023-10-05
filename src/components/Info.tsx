@@ -1,4 +1,4 @@
-import { CONTRACT_REVEAL_ADDRESS } from "@gnss/web3";
+import { CONTRACT_REVEAL_ADDRESS } from "@mgxs/web3";
 import { AlignHorizontalCenter, Info as InfoIcon } from "@mui/icons-material";
 import { Box, Card, Divider, Fab, Link, Stack } from "@mui/material";
 import { useState } from "react";

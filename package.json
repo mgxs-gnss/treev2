@@ -1,12 +1,12 @@
 {
-  "name": "tree",
+  "name": "@mgxs/tree",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.10.6",
     "@emotion/styled": "^11.10.6",
-    "@gnss/common": "github:mgxs-gnss/common",
-    "@gnss/web3": "github:mgxs-gnss/web3",
+    "@mgxs/common": "^1.1.1",
+    "@mgxs/web3": "^1.3.0",
     "@mui/icons-material": "^5.11.16",
     "@mui/material": "^5.13.7",
     "@sentry/react": "^7.52.1",
