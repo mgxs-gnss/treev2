@@ -45,7 +45,3 @@ export const isMobile = () => {
 
   return isMobile;
 };
-
-export const isDev = () =>
-  window.location.href.includes("localhost") ||
-  window.location.href.includes("dev-mem.");
