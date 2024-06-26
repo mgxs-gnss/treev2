@@ -23,13 +23,22 @@ const useMemImages = (highlightedIndex?: string, isGNSS?: boolean) => {
         if (!keys[0]?.url) return;
 
         const jsonURL = keys[0].url.replace(".jpg", ".json");
-        const jsonData = await (await fetch(jsonURL)).json();
+        let jsonData = await (await fetch(jsonURL)).json();
         const imgName = keys[0].url;
         const lastIndexSlash = imgName.lastIndexOf("/") + 1;
         const gnssNum = imgName
           .substring(lastIndexSlash, imgName.length)
           .replace(".jpg", "")
           .split("_")[1];
+
+        if (!Array.isArray(jsonData.attributes)) {
+          jsonData = {
+            ...jsonData,
+            attributes: Object.entries(jsonData.attributes).map(
+              ([key, value]) => ({ trait_type: key, value })
+            ),
+          };
+        }
 
         setJsonData({ creator: keys[0].owner, gnssNum, ...jsonData });
       } catch (error) {
@@ -78,6 +87,8 @@ const useMemImages = (highlightedIndex?: string, isGNSS?: boolean) => {
       data.images.length > 0 &&
       loadJson(highlightedIndex);
   }, [highlightedIndex, setData, load, isGNSS, data]);
+
+  console.log(jsonData);
 
   return {
     images: data?.images,
