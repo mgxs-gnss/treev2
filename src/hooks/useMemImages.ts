@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { JSONData, Mems } from "../interfaces";
 import { getRandomGNSS, isMobile, randomArray, setColumns } from "../utils";
 import { API } from "../config";
@@ -76,26 +76,31 @@ const useMemImages = (highlightedIndex?: string, isGNSS?: boolean) => {
     } finally {
       setLoading(false);
     }
-  }, [setLoading, setColumns, setData]);
+  }, [isGNSS]);
 
   useEffect(() => {
-    !data && load();
-
-    data &&
+    if (!data) {
+      load();
+    } else if (
       highlightedIndex !== undefined &&
       highlightedIndex !== null &&
-      data.images.length > 0 &&
+      data.images.length > 0
+    ) {
       loadJson(highlightedIndex);
-  }, [highlightedIndex, setData, load, isGNSS, data]);
+    }
+  }, [highlightedIndex, load, data, loadJson]);
 
-  console.log(jsonData);
+  const memoizedData = useMemo(
+    () => ({
+      images: data?.images,
+      loading,
+      imageCount: data?.count,
+      jsonData,
+    }),
+    [data, loading, jsonData]
+  );
 
-  return {
-    images: data?.images,
-    loading,
-    imageCount: data?.count,
-    jsonData,
-  };
+  return memoizedData;
 };
 
 export { useMemImages };

@@ -1,12 +1,11 @@
 import { Theme } from "@mgxs/common";
 import { RouterProvider } from "react-router-dom";
 import { router } from "./router";
-import { useEffect } from "react";
+import { useEffect, memo } from "react";
 
 const App = () => {
   useEffect(() => {
-    // @ts-ignore
-    window.timeStart = new Date().getTime();
+    (window as any).timeStart = new Date().getTime();
   }, []);
 
   return (
@@ -16,4 +15,4 @@ const App = () => {
   );
 };
 
-export default App;
+export default memo(App);

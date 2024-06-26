@@ -1,7 +1,7 @@
 import { CONTRACT_REVEAL_ADDRESS } from "@mgxs/web3";
 import { AlignHorizontalCenter, Info as InfoIcon } from "@mui/icons-material";
 import { Box, Card, Divider, Fab, Link, Stack } from "@mui/material";
-import { useState } from "react";
+import { memo, useState, useCallback } from "react";
 import { JSONData, Mems } from "../interfaces";
 import { compressAddress, isMobile } from "../utils";
 import { Paragraph, Search } from "./";
@@ -27,96 +27,95 @@ const filterOutAttrs = [
   "Tst1",
   "Tst2",
   "Tst3",
-
   "Model_tag",
   "Prompt",
   "Negative",
   "Crop",
 ];
 
-const Info = ({ imageCount, jsonData, images, onChange }: IInfo) => {
+const Info = memo(({ imageCount, jsonData, images, onChange }: IInfo) => {
   const [opened, setOpened] = useState(false);
+
+  const handleToggle = useCallback(() => {
+    setOpened((prev) => !prev);
+  }, []);
 
   return (
     <Box position="fixed" zIndex={100}>
       <Box sx={{ position: "fixed", zIndex: 6, top: 0, right: 0 }} p={[2, 4]}>
-        <Fab
-          color="primary"
-          variant="circular"
-          onClick={() => setOpened(!opened)}
-        >
+        <Fab color="primary" variant="circular" onClick={handleToggle}>
           <InfoIcon />
         </Fab>
       </Box>
-      <Card
-        sx={{
-          m: 1,
-          width: "300px",
-          position: "fixed",
-          top: 0,
-          left: 0,
-          zIndex: 7,
-          height: "auto",
-          maxHeight: "100vh",
-          overflowY: "auto",
-          padding: 3,
-          transition: "transform .2s ease-in-out",
-          transform: `translate(${opened ? 0 : "-120%"})`,
-        }}
-      >
-        <Stack spacing={1}>
-          {jsonData && (
-            <>
-              <Stack alignItems="center">
-                <Box>
-                  <AlignHorizontalCenter />
-                </Box>
-              </Stack>
-              <Paragraph>
-                <Paragraph variant="inherit" bold>
-                  Name:
-                </Paragraph>{" "}
-                {jsonData.name}
-              </Paragraph>
+      {opened && (
+        <Card
+          sx={{
+            m: 1,
+            width: "300px",
+            position: "fixed",
+            top: 0,
+            left: 0,
+            zIndex: 7,
+            height: "auto",
+            maxHeight: "100vh",
+            overflowY: "auto",
+            padding: 3,
+          }}
+        >
+          <Stack spacing={1}>
+            {jsonData && (
+              <>
+                <Stack alignItems="center">
+                  <Box>
+                    <AlignHorizontalCenter />
+                  </Box>
+                </Stack>
+                <Paragraph>
+                  <Paragraph variant="inherit" bold>
+                    Name:
+                  </Paragraph>{" "}
+                  {jsonData.name}
+                </Paragraph>
 
-              <Paragraph>
-                <Paragraph variant="inherit" bold>
-                  Rememberer:
-                </Paragraph>{" "}
-                {compressAddress(jsonData.creator)}
-              </Paragraph>
-              {jsonData.attributes
-                .filter((attr) => !filterOutAttrs.includes(attr.trait_type))
-                .map((attr, index) => (
-                  <Paragraph key={index}>
-                    <Paragraph variant="inherit" bold>
-                      {attr.trait_type}:
-                    </Paragraph>{" "}
-                    {JSON.stringify(attr.value)}
-                  </Paragraph>
-                ))}
-              <Divider style={{ margin: "20px 0 15px" }} />
-              <Paragraph variant="subtitle2" bold>
-                GNSS #{jsonData.gnssNum}
-              </Paragraph>
-              <Box>
-                <Link
-                  href={`https://opensea.io/assets/ethereum/${CONTRACT_REVEAL_ADDRESS}/${jsonData.gnssNum}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Box
-                    component="img"
-                    src={`https://assets.mgxs.co/thumbs/${jsonData.gnssNum}.jpg`}
-                    alt="GNSS Attribute"
-                    width="100%"
-                  />
-                </Link>
-              </Box>
-            </>
-          )}
-        </Stack>
-      </Card>
+                <Paragraph>
+                  <Paragraph variant="inherit" bold>
+                    Rememberer:
+                  </Paragraph>{" "}
+                  {compressAddress(jsonData.creator)}
+                </Paragraph>
+                {jsonData.attributes
+                  .filter((attr) => !filterOutAttrs.includes(attr.trait_type))
+                  .map((attr, index) => (
+                    <Paragraph key={index}>
+                      <Paragraph variant="inherit" bold>
+                        {attr.trait_type}:
+                      </Paragraph>{" "}
+                      {JSON.stringify(attr.value)}
+                    </Paragraph>
+                  ))}
+                <Divider style={{ margin: "20px 0 15px" }} />
+                <Paragraph variant="subtitle2" bold>
+                  GNSS #{jsonData.gnssNum}
+                </Paragraph>
+                <Box>
+                  <Link
+                    href={`https://opensea.io/assets/ethereum/${CONTRACT_REVEAL_ADDRESS}/${jsonData.gnssNum}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Box
+                      component="img"
+                      src={`https://assets.mgxs.co/thumbs/${jsonData.gnssNum}.jpg`}
+                      alt="GNSS Attribute"
+                      width="100%"
+                    />
+                  </Link>
+                </Box>
+              </>
+            )}
+          </Stack>
+        </Card>
+      )}
 
       <Stack
         spacing={2}
@@ -154,6 +153,6 @@ const Info = ({ imageCount, jsonData, images, onChange }: IInfo) => {
       </Stack>
     </Box>
   );
-};
+});
 
 export { Info };

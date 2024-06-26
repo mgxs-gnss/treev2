@@ -1,4 +1,5 @@
 import { Typography, TypographyProps } from "@mui/material";
+import { memo } from "react";
 
 interface IParagraph extends TypographyProps {
   bold?: boolean;
@@ -18,4 +19,13 @@ const Paragraph = ({ children, bold, ...props }: IParagraph) => (
   </Typography>
 );
 
-export { Paragraph };
+const areEqual = (prevProps: IParagraph, nextProps: IParagraph) => {
+  return (
+    prevProps.children === nextProps.children &&
+    prevProps.bold === nextProps.bold &&
+    (Object.keys(prevProps) as (keyof IParagraph)[]).every(
+      (key) => prevProps[key] === nextProps[key]
+    )
+  );
+};
+export default memo(Paragraph, areEqual);

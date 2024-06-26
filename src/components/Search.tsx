@@ -6,7 +6,7 @@ import {
   TextField,
   useTheme,
 } from "@mui/material";
-import { useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import { Mems } from "../interfaces";
 
 interface Props {
@@ -14,17 +14,29 @@ interface Props {
   images: Mems[];
 }
 
-const Search = ({ onSearch, images }: Props) => {
+const Search = memo(({ onSearch, images }: Props) => {
   const [text, setText] = useState<string | null>(null);
   const theme = useTheme();
+
+  const gnssCount: { [key: string]: number } = {};
 
   const options = useMemo(
     () => [
       ...new Set(
         images
           .filter((a) => a.owner !== "Anonymous" && !a.owner.includes("0x"))
-          .map((a) => ({ ...a, gnss: a.url.split("_")[1].split(".")[0] }))
-          .sort((a, b) => Number(a.gnss) - Number(b.gnss))
+          .map((a) => {
+            const gnss = a.url.split("_")[1].split(".")[0];
+            gnssCount[gnss] = (gnssCount[gnss] || 0) + 1;
+            return {
+              ...a,
+              gnss: gnssCount[gnss] > 1 ? `${gnss} (${gnssCount[gnss]})` : gnss,
+            };
+          })
+          .sort(
+            (a, b) =>
+              Number(a.gnss.split(" ")[0]) - Number(b.gnss.split(" ")[0])
+          )
       ),
     ],
     [images]
@@ -89,6 +101,6 @@ const Search = ({ onSearch, images }: Props) => {
       </IconButton>
     </Stack>
   );
-};
+});
 
 export { Search };

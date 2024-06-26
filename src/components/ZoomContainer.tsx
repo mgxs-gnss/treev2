@@ -6,6 +6,7 @@ import { getColumns } from "../utils";
 import { Mem } from "./Mem";
 import { UI } from "./UI";
 import { For } from "million/react";
+import React from "react";
 
 type Props = {
   imageCount: number;
@@ -16,52 +17,56 @@ type Props = {
   setHighlightedIndex(num?: string): void;
 };
 
-const ZoomContainer = ({
-  imageCount,
-  images,
-  jsonData,
-  onUpdateIndex,
-  highlightedIndex,
-  setHighlightedIndex,
-}: Props) => {
-  const [search] = useSearchParams();
-  const isHome = search.has("home");
-  const theme = useTheme();
+const ZoomContainer = React.memo(
+  ({
+    imageCount,
+    images,
+    jsonData,
+    onUpdateIndex,
+    highlightedIndex,
+    setHighlightedIndex,
+  }: Props) => {
+    const [search] = useSearchParams();
+    const isHome = search.has("home");
+    const theme = useTheme();
 
-  return (
-    <>
-      <UI
-        imageCount={imageCount}
-        images={images}
-        jsonData={jsonData}
-        onUpdateIndex={onUpdateIndex}
-        setHighlightedIndex={setHighlightedIndex}
-      />
-      <TransformComponent>
-        <div
-          style={{
-            display: "grid",
-            willChange: "transform",
-            gridTemplateColumns: `repeat(${getColumns()}, 1fr)`,
-            gap: theme.spacing(5),
-            width: "100%",
-          }}
-        >
-          <For each={images}>
-            {({ url }) => (
-              <Mem
-                key={url}
-                index={url}
-                src={url}
-                isHome={isHome}
-                active={isHome ? undefined : highlightedIndex === url}
-              />
-            )}
-          </For>
-        </div>
-      </TransformComponent>
-    </>
-  );
-};
+    return (
+      <>
+        <UI
+          imageCount={imageCount}
+          images={images}
+          jsonData={jsonData}
+          onUpdateIndex={onUpdateIndex}
+          setHighlightedIndex={setHighlightedIndex}
+        />
+        <TransformComponent>
+          <div
+            style={{
+              display: "grid",
+              willChange: "transform",
+              gridTemplateColumns: `repeat(${getColumns()}, 1fr)`,
+              gap: theme.spacing(5),
+              width: "100%",
+            }}
+          >
+            <For each={images}>
+              {({ url }) => (
+                <MemoizedMem
+                  key={url}
+                  index={url}
+                  src={url}
+                  isHome={isHome}
+                  active={isHome ? undefined : highlightedIndex === url}
+                />
+              )}
+            </For>
+          </div>
+        </TransformComponent>
+      </>
+    );
+  }
+);
+
+const MemoizedMem = React.memo(Mem);
 
 export { ZoomContainer };

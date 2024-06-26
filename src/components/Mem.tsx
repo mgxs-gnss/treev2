@@ -1,4 +1,4 @@
-import { block } from "million/react";
+import { memo } from "react";
 
 interface IMem {
   active?: boolean;
@@ -7,22 +7,29 @@ interface IMem {
   isHome?: boolean;
 }
 
-const Mem = block(
-  function Mem({ active, src, index, isHome }: IMem) {
+const Mem = memo(
+  function ({ active, src, index, isHome }: IMem) {
+    const className = `mem${active ? " mem-highlight" : ""} ${
+      isHome ? " mem-home" : ""
+    }`;
+    const optimizedSrc = src.replace(".jpg", "_low.jpg");
+
     return (
       <img
         loading="lazy"
-        className={`mem${active ? " mem-highlight" : ""} ${
-          isHome ? " mem-home" : ""
-        }`}
+        className={className}
         data-container
         id={index}
         alt={index}
-        src={src.replace(".jpg", "_low.jpg")}
+        src={optimizedSrc}
       />
     );
   },
-  { as: "img" }
+  (prevProps, nextProps) =>
+    prevProps.active === nextProps.active &&
+    prevProps.src === nextProps.src &&
+    prevProps.index === nextProps.index &&
+    prevProps.isHome === nextProps.isHome
 );
 
 export { Mem };

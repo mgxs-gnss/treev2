@@ -7,8 +7,9 @@ import {
 import { useHighlightedIndex, useMemImages } from "../hooks";
 import { isMobile } from "../utils";
 import { ZoomContainer } from "./ZoomContainer";
+import React, { useCallback, useMemo } from "react";
 
-const ZoomPanComponent = () => {
+const ZoomPanComponentMemo = () => {
   const [search] = useSearchParams();
   const isHome = search.has("home");
   const isGNSS = search.has("GNSS");
@@ -20,7 +21,9 @@ const ZoomPanComponent = () => {
     isGNSS
   );
 
-  const isMob = isMobile();
+  const isMob = useMemo(() => isMobile(), []);
+
+  const memoizedUpdateIndex = useCallback(updateIndex, [updateIndex]);
 
   if (loading || !imageCount || !images) {
     return (
@@ -44,10 +47,10 @@ const ZoomPanComponent = () => {
       maxScale={0.6}
       minScale={isMob ? 0.25 : 0.1}
       limitToBounds={isMob}
-      onInit={updateIndex}
-      onPanning={updateIndex}
-      onZoom={updateIndex}
-      onWheel={updateIndex}
+      onInit={memoizedUpdateIndex}
+      onPanning={memoizedUpdateIndex}
+      onZoom={memoizedUpdateIndex}
+      onWheel={memoizedUpdateIndex}
       customTransform={(x: number, y: number, scale: number) =>
         getMatrixTransformStyles(x, y, scale)
       }
@@ -60,11 +63,11 @@ const ZoomPanComponent = () => {
         images={images}
         jsonData={jsonData}
         highlightedIndex={highlightedIndex}
-        onUpdateIndex={updateIndex}
+        onUpdateIndex={memoizedUpdateIndex}
         setHighlightedIndex={setHighlightedIndex}
       />
     </TransformWrapper>
   );
 };
 
-export { ZoomPanComponent };
+export const ZoomPanComponent = React.memo(ZoomPanComponentMemo);

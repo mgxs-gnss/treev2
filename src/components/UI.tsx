@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useCallback, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Info, Interval } from ".";
 import { JSONData, Mems } from "../interfaces";
@@ -23,44 +23,51 @@ const UI = memo(function UI({
   jsonData,
 }: Props) {
   const [search] = useSearchParams();
-  const isHome = search.has("home");
+  const isHome = useMemo(() => search.has("home"), [search]);
 
   const navigate = useNavigate();
   const { zoomToElement, resetTransform } = useControls();
+
+  const intervalCallback = useCallback(() => {
+    const now = new Date().getTime();
+
+    //@ts-ignore
+    if (now - window.timeStart >= TIME_REFRESH) {
+      navigate(0);
+    }
+
+    const num = ~~(Math.random() * imageCount);
+    zoomToElement(num.toString());
+    setTimeout(resetTransform, intervals[2]);
+  }, [imageCount, navigate, resetTransform, zoomToElement]);
+
+  const infoOnChange = useCallback(
+    (num: string) => {
+      if (num === "") {
+        setHighlightedIndex(undefined);
+        resetTransform();
+      } else {
+        zoomToElement(`${num}`, 0.5);
+        setHighlightedIndex(num);
+        setTimeout(onUpdateIndex, intervals[0]);
+      }
+    },
+    [onUpdateIndex, resetTransform, setHighlightedIndex, zoomToElement]
+  );
 
   return (
     <>
       {isHome && (
         <Interval
           interval={intervals.reduce((a, b) => a + b, 0)}
-          callback={() => {
-            const now = new Date().getTime();
-
-            //@ts-ignore
-            if (now - window.timeStart >= TIME_REFRESH) {
-              navigate(0);
-            }
-
-            const num = ~~(Math.random() * imageCount);
-            zoomToElement(num.toString());
-            setTimeout(resetTransform, intervals[2]);
-          }}
+          callback={intervalCallback}
         />
       )}
 
       {!isHome && (
         <Info
           images={images}
-          onChange={(num: string) => {
-            if (num === "") {
-              setHighlightedIndex(undefined);
-              resetTransform();
-            } else {
-              zoomToElement(`${num}`, 0.5);
-              setHighlightedIndex(num);
-              setTimeout(onUpdateIndex, intervals[0]);
-            }
-          }}
+          onChange={infoOnChange}
           imageCount={imageCount}
           jsonData={jsonData}
         />
