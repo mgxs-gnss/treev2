@@ -2,11 +2,13 @@ import { Box, CircularProgress, Typography } from "@mui/material";
 import { memo, useState, useCallback, useEffect, useRef } from "react";
 import {
   forceSimulation,
-  forceCenter,
   forceCollide,
   forceManyBody,
+  forceX,
+  forceY,
   SimulationNodeDatum,
 } from "d3-force";
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import { useBubbleData, BubbleData } from "../hooks/useBubbleData";
 
 const MIN_BUBBLE_SIZE = 40;
@@ -101,7 +103,9 @@ const BubbleViewMemo = () => {
 
     // Create force simulation
     const simulation = forceSimulation<BubbleNode>(initialNodes)
-      .force("center", forceCenter(width / 2, height / 2))
+      // Attract all bubbles to center
+      .force("x", forceX(width / 2).strength(0.05))
+      .force("y", forceY(height / 2).strength(0.05))
       .force(
         "charge",
         forceManyBody<BubbleNode>()
@@ -134,7 +138,8 @@ const BubbleViewMemo = () => {
       if (simulationRef.current) {
         const width = window.innerWidth;
         const height = window.innerHeight;
-        simulationRef.current.force("center", forceCenter(width / 2, height / 2));
+        simulationRef.current.force("x", forceX(width / 2).strength(0.05));
+        simulationRef.current.force("y", forceY(height / 2).strength(0.05));
         simulationRef.current.alpha(0.3).restart();
       }
     };
@@ -197,52 +202,72 @@ const BubbleViewMemo = () => {
   return (
     <>
       <BubbleInfo data={selectedBubble} />
-      <div
-        onClick={handleContainerClick}
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          width: "100vw",
-          height: "100vh",
-          overflow: "hidden",
-        }}
+      <TransformWrapper
+        initialScale={1}
+        minScale={0.2}
+        maxScale={5}
+        centerOnInit
+        wheel={{ step: 0.1 }}
+        panning={{ velocityDisabled: true }}
       >
-        {nodes.map((node) => (
+        <TransformComponent
+          wrapperStyle={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+          }}
+          contentStyle={{
+            width: "100vw",
+            height: "100vh",
+          }}
+        >
           <div
-            key={node.data.gnssNum}
-            className={`bubble ${selectedBubble?.gnssNum === node.data.gnssNum ? "bubble-selected" : ""}`}
+            onClick={handleContainerClick}
             style={{
-              position: "absolute",
-              left: (node.x ?? 0) - node.size / 2,
-              top: (node.y ?? 0) - node.size / 2,
-              width: node.size,
-              height: node.size,
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleSelect(node.data);
+              position: "relative",
+              width: "100vw",
+              height: "100vh",
             }}
           >
-            <img
-              src={node.data.imageUrl}
-              alt={`GNSS ${node.data.gnssNum}`}
-              loading="lazy"
-              decoding="async"
-              draggable={false}
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                borderRadius: "50%",
-              }}
-            />
-            {node.data.memCount > 0 && (
-              <div className="bubble-count">{node.data.memCount}</div>
-            )}
+            {nodes.map((node) => (
+              <div
+                key={node.data.gnssNum}
+                className={`bubble ${selectedBubble?.gnssNum === node.data.gnssNum ? "bubble-selected" : ""}`}
+                style={{
+                  position: "absolute",
+                  left: (node.x ?? 0) - node.size / 2,
+                  top: (node.y ?? 0) - node.size / 2,
+                  width: node.size,
+                  height: node.size,
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSelect(node.data);
+                }}
+              >
+                <img
+                  src={node.data.imageUrl}
+                  alt={`GNSS ${node.data.gnssNum}`}
+                  loading="lazy"
+                  decoding="async"
+                  draggable={false}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    borderRadius: "50%",
+                  }}
+                />
+                {node.data.memCount > 0 && (
+                  <div className="bubble-count">{node.data.memCount}</div>
+                )}
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </TransformComponent>
+      </TransformWrapper>
     </>
   );
 };
