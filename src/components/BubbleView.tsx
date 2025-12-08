@@ -15,6 +15,7 @@ const MAX_BUBBLE_SIZE = 180;
 interface BubbleNode extends SimulationNodeDatum {
   data: BubbleData;
   size: number;
+  mass: number; // Combined size and MEM count
 }
 
 const BubbleInfo = memo(function BubbleInfo({ data }: { data: BubbleData | null }) {
@@ -86,9 +87,13 @@ const BubbleViewMemo = () => {
       const angle = (i / bubbles.length) * Math.PI * 2;
       const radius = Math.min(width, height) * 0.25;
 
+      // Mass combines visual size and MEM count for gravitational attraction
+      const mass = size * Math.sqrt(bubble.memCount);
+
       return {
         data: bubble,
         size,
+        mass,
         x: width / 2 + Math.cos(angle) * radius,
         y: height / 2 + Math.sin(angle) * radius,
       };
@@ -100,7 +105,7 @@ const BubbleViewMemo = () => {
       .force(
         "charge",
         forceManyBody<BubbleNode>()
-          .strength((d) => d.size * 0.5) // Bigger bubbles attract more
+          .strength((d) => d.mass * 0.15) // Mass-based attraction (size * memCount)
           .distanceMax(400)
       )
       .force(
