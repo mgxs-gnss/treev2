@@ -71,9 +71,9 @@ export const useBubbleData = (): UseBubbleDataResult => {
           })
         );
 
-        // Collect successful results
+        // Collect successful results - only include GNSS with MEMs
         for (const result of batchResults) {
-          if (result.status === "fulfilled") {
+          if (result.status === "fulfilled" && result.value.memCount > 0) {
             fetchedBubbles.push(result.value);
           }
         }
