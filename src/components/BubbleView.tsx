@@ -102,16 +102,17 @@ const BubbleCanvas = memo(function BubbleCanvas({
   selectedBubble,
   onSelect,
   onContainerClick,
+  onMemClick,
 }: {
   nodes: BubbleNode[];
   memNodes: MemNode[];
   selectedBubble: BubbleData | null;
   onSelect: (data: BubbleData) => void;
   onContainerClick: (e: React.MouseEvent) => void;
+  onMemClick: (url: string) => void;
 }) {
   const { setTransform } = useControls();
   const selectedNode = nodes.find((n) => n.data.gnssNum === selectedBubble?.gnssNum);
-  const [fullscreenMem, setFullscreenMem] = useState<string | null>(null);
 
   // Center on selected bubble
   useEffect(() => {
@@ -126,55 +127,14 @@ const BubbleCanvas = memo(function BubbleCanvas({
   }, [selectedNode, setTransform]);
 
   return (
-    <>
-      {/* Fullscreen MEM overlay */}
-      {fullscreenMem && (
-        <div
-          className="fullscreen-overlay"
-          onClick={() => setFullscreenMem(null)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 9999,
-            background: "rgba(0, 0, 0, 0.95)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
-          }}
-        >
-          <img
-            src={fullscreenMem}
-            alt="MEM fullscreen"
-            style={{
-              maxWidth: "90vw",
-              maxHeight: "90vh",
-              objectFit: "contain",
-              borderRadius: 8,
-              boxShadow: "0 0 60px rgba(0,0,0,0.5)",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute",
-              top: 20,
-              right: 20,
-              color: "rgba(255,255,255,0.7)",
-              fontSize: 14,
-            }}
-          >
-            Click anywhere to close
-          </div>
-        </div>
-      )}
-      <div
-        onClick={onContainerClick}
-        style={{
-          position: "relative",
-          width: "100vw",
-          height: "100vh",
-        }}
-      >
+    <div
+      onClick={onContainerClick}
+      style={{
+        position: "relative",
+        width: "100vw",
+        height: "100vh",
+      }}
+    >
       {/* GNSS Bubbles */}
       {nodes.map((node) => {
         const isSelected = selectedBubble?.gnssNum === node.data.gnssNum;
@@ -232,7 +192,7 @@ const BubbleCanvas = memo(function BubbleCanvas({
           }}
           onClick={(e) => {
             e.stopPropagation();
-            setFullscreenMem(memNode.url);
+            onMemClick(memNode.url);
           }}
         >
           <img
@@ -250,8 +210,7 @@ const BubbleCanvas = memo(function BubbleCanvas({
           />
         </div>
       ))}
-      </div>
-    </>
+    </div>
   );
 });
 
@@ -260,6 +219,7 @@ const BubbleViewMemo = () => {
   const [selectedBubble, setSelectedBubble] = useState<BubbleData | null>(null);
   const [nodes, setNodes] = useState<BubbleNode[]>([]);
   const [memNodes, setMemNodes] = useState<MemNode[]>([]);
+  const [fullscreenMem, setFullscreenMem] = useState<string | null>(null);
   const simulationRef = useRef<ReturnType<typeof forceSimulation<BubbleNode>> | null>(null);
   const memSimulationRef = useRef<ReturnType<typeof forceSimulation<MemNode>> | null>(null);
 
@@ -609,9 +569,49 @@ const BubbleViewMemo = () => {
             selectedBubble={selectedBubble}
             onSelect={handleSelect}
             onContainerClick={handleContainerClick}
+            onMemClick={setFullscreenMem}
           />
         </TransformComponent>
       </TransformWrapper>
+      {/* Fullscreen MEM overlay - outside TransformWrapper to stay fixed */}
+      {fullscreenMem && (
+        <div
+          onClick={() => setFullscreenMem(null)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            background: "rgba(0, 0, 0, 0.95)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+          }}
+        >
+          <img
+            src={fullscreenMem}
+            alt="MEM fullscreen"
+            style={{
+              maxWidth: "90vw",
+              maxHeight: "90vh",
+              objectFit: "contain",
+              borderRadius: 8,
+              boxShadow: "0 0 60px rgba(0,0,0,0.5)",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              top: 20,
+              right: 20,
+              color: "rgba(255,255,255,0.7)",
+              fontSize: 14,
+            }}
+          >
+            Click anywhere to close
+          </div>
+        </div>
+      )}
     </>
   );
 };
