@@ -38,7 +38,7 @@ export const useBubbleData = (): UseBubbleDataResult => {
         .filter(([_, mems]) => mems.length > 0) // Only include GNSS with MEMs
         .map(([gnssNum, mems]) => ({
           gnssNum,
-          imageUrl: `https://assets.mgxs.co/${gnssNum}.png`,
+          imageUrl: `https://assets.mgxs.co/${gnssNum}.jpg`,
           memCount: mems.length,
         }));
 
