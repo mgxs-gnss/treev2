@@ -19,10 +19,6 @@ interface BubbleProps {
 }
 
 const Bubble = memo(function Bubble({ data, size, onSelect, isSelected }: BubbleProps) {
-  // Use the image URL directly from API (already points to assets.mgxs.co)
-  // Try low quality version first, fallback to original
-  const optimizedSrc = data.imageUrl.replace(".png", "_low.png");
-
   return (
     <div
       className={`bubble ${isSelected ? "bubble-selected" : ""}`}
@@ -35,14 +31,10 @@ const Bubble = memo(function Bubble({ data, size, onSelect, isSelected }: Bubble
       onClick={() => onSelect(data)}
     >
       <img
-        src={optimizedSrc}
+        src={data.imageUrl}
         alt={data.name || `GNSS ${data.gnssNum}`}
         loading="lazy"
         decoding="async"
-        onError={(e) => {
-          // Fallback to original if low quality doesn't exist
-          (e.target as HTMLImageElement).src = data.imageUrl;
-        }}
         style={{
           width: "100%",
           height: "100%",
