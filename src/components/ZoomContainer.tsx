@@ -5,8 +5,8 @@ import { ReactZoomPanPinchState, TransformComponent } from "react-zoom-pan-pinch
 import { getColumns } from "../utils";
 import { Mem } from "./Mem";
 import { UI } from "./UI";
-import React, { useMemo } from "react";
-import { useViewportVirtualization } from "../hooks";
+import React, { useMemo, useCallback } from "react";
+import { useViewportVirtualization, useImageQueue } from "../hooks";
 
 type Props = {
   imageCount: number;
@@ -32,10 +32,29 @@ const ZoomContainer = React.memo(
     const isHome = search.has("home");
     const theme = useTheme();
 
-    const { visibleIndices } = useViewportVirtualization({
+    const { visibleIndices, visibleItems, scale } = useViewportVirtualization({
       totalImages: imageCount,
       transformState,
       buffer: 3,
+    });
+
+    // Create a map for quick lookup of visible item info
+    const visibleItemMap = useMemo(() => {
+      const map = new Map<number, (typeof visibleItems)[0]>();
+      visibleItems.forEach((item) => map.set(item.index, item));
+      return map;
+    }, [visibleItems]);
+
+    // Get image URL by index
+    const getImageUrl = useCallback(
+      (index: number) => images[index]?.url || "",
+      [images]
+    );
+
+    // Use image queue for priority loading
+    const { getLoadedState, isLoading } = useImageQueue({
+      visibleItems,
+      getImageUrl,
     });
 
     const columns = getColumns();
@@ -48,8 +67,13 @@ const ZoomContainer = React.memo(
 
         if (!isVisible) {
           // Render placeholder to maintain grid structure
-          return <div key={url} className="mem" style={{ visibility: 'hidden' }} />;
+          return <div key={url} className="mem" style={{ visibility: "hidden" }} />;
         }
+
+        const itemInfo = visibleItemMap.get(index);
+        const lodLevel = itemInfo?.lodLevel ?? 1;
+        const loadedState = getLoadedState(index);
+        const loading = isLoading(index);
 
         return (
           <MemoizedMem
@@ -58,10 +82,22 @@ const ZoomContainer = React.memo(
             src={url}
             isHome={isHome}
             active={isHome ? undefined : highlightedIndex === url}
+            lodLevel={lodLevel}
+            loadedLowRes={loadedState?.lowRes}
+            loadedHighRes={loadedState?.highRes}
+            isLoading={loading}
           />
         );
       });
-    }, [images, visibleIndices, isHome, highlightedIndex]);
+    }, [
+      images,
+      visibleIndices,
+      visibleItemMap,
+      isHome,
+      highlightedIndex,
+      getLoadedState,
+      isLoading,
+    ]);
 
     return (
       <>
@@ -85,6 +121,25 @@ const ZoomContainer = React.memo(
             {gridItems}
           </div>
         </TransformComponent>
+        {/* Debug info (remove in production) */}
+        {process.env.NODE_ENV === "development" && (
+          <div
+            style={{
+              position: "fixed",
+              bottom: 60,
+              left: 10,
+              background: "rgba(0,0,0,0.7)",
+              color: "#fff",
+              padding: "4px 8px",
+              fontSize: 11,
+              borderRadius: 4,
+              fontFamily: "monospace",
+              zIndex: 1000,
+            }}
+          >
+            Scale: {scale.toFixed(2)} | Visible: {visibleItems.length}
+          </div>
+        )}
       </>
     );
   }

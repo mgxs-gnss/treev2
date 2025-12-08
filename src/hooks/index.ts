@@ -3,3 +3,4 @@ export * from "./useInterval";
 export * from "./useHighlightedIndex";
 export * from "./useViewportVirtualization";
 export * from "./useBubbleData";
+export * from "./useImageQueue";
