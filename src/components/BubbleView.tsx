@@ -8,7 +8,7 @@ import {
   forceY,
   SimulationNodeDatum,
 } from "d3-force";
-import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
+import { TransformWrapper, TransformComponent, useControls } from "react-zoom-pan-pinch";
 import { useBubbleData, BubbleData } from "../hooks/useBubbleData";
 
 const MIN_BUBBLE_SIZE = 40;
@@ -63,6 +63,121 @@ const BubbleInfo = memo(function BubbleInfo({ data }: { data: BubbleData | null 
         </a>
       </Box>
     </Box>
+  );
+});
+
+// Inner component to access TransformWrapper controls
+const BubbleCanvas = memo(function BubbleCanvas({
+  nodes,
+  memNodes,
+  selectedBubble,
+  onSelect,
+  onContainerClick,
+}: {
+  nodes: BubbleNode[];
+  memNodes: MemNode[];
+  selectedBubble: BubbleData | null;
+  onSelect: (data: BubbleData) => void;
+  onContainerClick: (e: React.MouseEvent) => void;
+}) {
+  const { setTransform } = useControls();
+  const selectedNode = nodes.find((n) => n.data.gnssNum === selectedBubble?.gnssNum);
+
+  // Center on selected bubble
+  useEffect(() => {
+    if (selectedNode) {
+      const x = selectedNode.x ?? window.innerWidth / 2;
+      const y = selectedNode.y ?? window.innerHeight / 2;
+      // Center the view on the selected bubble
+      const newX = window.innerWidth / 2 - x;
+      const newY = window.innerHeight / 2 - y;
+      setTransform(newX, newY, 1, 500, "easeOut");
+    }
+  }, [selectedNode, setTransform]);
+
+  return (
+    <div
+      onClick={onContainerClick}
+      style={{
+        position: "relative",
+        width: "100vw",
+        height: "100vh",
+      }}
+    >
+      {/* GNSS Bubbles */}
+      {nodes.map((node) => {
+        const isSelected = selectedBubble?.gnssNum === node.data.gnssNum;
+        return (
+          <div
+            key={node.data.gnssNum}
+            className={`bubble ${isSelected ? "bubble-selected" : ""}`}
+            style={{
+              position: "absolute",
+              left: (node.x ?? 0) - node.size / 2,
+              top: (node.y ?? 0) - node.size / 2,
+              width: node.size,
+              height: node.size,
+              opacity: selectedBubble && !isSelected ? 0.1 : undefined,
+              transition: "opacity 0.3s ease",
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelect(node.data);
+            }}
+          >
+            <img
+              src={node.data.imageUrl}
+              alt={`GNSS ${node.data.gnssNum}`}
+              loading="lazy"
+              decoding="async"
+              draggable={false}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                borderRadius: "50%",
+              }}
+            />
+            {node.data.memCount > 0 && (
+              <div className="bubble-count">{node.data.memCount}</div>
+            )}
+          </div>
+        );
+      })}
+      {/* MEM Bubbles - shown when a GNSS is selected */}
+      {memNodes.map((memNode, index) => (
+        <div
+          key={`mem-${index}`}
+          className="bubble mem-bubble"
+          style={{
+            position: "absolute",
+            left: (memNode.x ?? 0) - memNode.size / 2,
+            top: (memNode.y ?? 0) - memNode.size / 2,
+            width: memNode.size,
+            height: memNode.size,
+            zIndex: 100,
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            window.open(memNode.url, "_blank");
+          }}
+        >
+          <img
+            src={memNode.url}
+            alt={`MEM ${index + 1}`}
+            loading="lazy"
+            decoding="async"
+            draggable={false}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              borderRadius: "50%",
+            }}
+          />
+        </div>
+      ))}
+    </div>
   );
 });
 
@@ -234,55 +349,65 @@ const BubbleViewMemo = () => {
     const centerY = selectedNode.y ?? window.innerHeight / 2;
     const parentRadius = selectedNode.size / 2;
 
+    // Minimum distance from center to not cover parent bubble
+    const minOrbitRadius = parentRadius + MEM_BUBBLE_SIZE / 2 + 15;
+    // Target orbit distance based on MEM count
+    const targetOrbitRadius = minOrbitRadius + Math.min(selectedBubble.memUrls.length * 4, 100);
+
     // Create MEM nodes around the selected bubble
     const initialMemNodes: MemNode[] = selectedBubble.memUrls.map((url, i) => {
       const angle = (i / selectedBubble.memUrls.length) * Math.PI * 2;
-      const orbitRadius = parentRadius + MEM_BUBBLE_SIZE + 20;
 
       return {
         url,
         size: MEM_BUBBLE_SIZE,
-        x: centerX + Math.cos(angle) * orbitRadius,
-        y: centerY + Math.sin(angle) * orbitRadius,
-        vx: -Math.sin(angle) * 2,
-        vy: Math.cos(angle) * 2,
+        x: centerX + Math.cos(angle) * targetOrbitRadius,
+        y: centerY + Math.sin(angle) * targetOrbitRadius,
+        vx: -Math.sin(angle) * 0.5, // Slower initial velocity
+        vy: Math.cos(angle) * 0.5,
       };
     });
 
-    // Create simulation for MEM bubbles
+    // Create simulation for MEM bubbles - soft and gentle
     const memSimulation = forceSimulation<MemNode>(initialMemNodes)
-      .force("x", forceX(centerX).strength(0.02))
-      .force("y", forceY(centerY).strength(0.02))
+      .force("x", forceX(centerX).strength(0.01)) // Gentle center pull
+      .force("y", forceY(centerY).strength(0.01))
       .force(
         "charge",
-        forceManyBody<MemNode>().strength(-100).distanceMax(200)
+        forceManyBody<MemNode>().strength(-30).distanceMax(150) // Softer repulsion
       )
       .force(
         "collide",
         forceCollide<MemNode>()
-          .radius((d) => d.size / 2 + 5)
-          .strength(1)
+          .radius((d) => d.size / 2 + 3)
+          .strength(0.8)
       )
       .force(
         "orbit",
         () => {
-          // Custom force to keep MEMs orbiting around parent
+          // Keep MEMs in orbit - push away if too close to parent
           initialMemNodes.forEach((node) => {
             const dx = (node.x ?? 0) - centerX;
             const dy = (node.y ?? 0) - centerY;
             const dist = Math.sqrt(dx * dx + dy * dy);
-            const targetDist = parentRadius + MEM_BUBBLE_SIZE * 1.5 + Math.min(selectedBubble.memUrls.length * 3, 80);
 
-            if (dist > 0) {
-              const factor = ((targetDist - dist) / dist) * 0.02;
+            // Push away if too close to parent bubble
+            if (dist < minOrbitRadius && dist > 0) {
+              const pushFactor = ((minOrbitRadius - dist) / dist) * 0.1;
+              node.vx = (node.vx ?? 0) + dx * pushFactor;
+              node.vy = (node.vy ?? 0) + dy * pushFactor;
+            }
+            // Gentle pull toward target orbit
+            else if (dist > 0) {
+              const factor = ((targetOrbitRadius - dist) / dist) * 0.005;
               node.vx = (node.vx ?? 0) + dx * factor;
               node.vy = (node.vy ?? 0) + dy * factor;
             }
           });
         }
       )
-      .alphaDecay(0.01)
-      .velocityDecay(0.1)
+      .alphaDecay(0.02) // Faster settling
+      .velocityDecay(0.4) // More damping for softer movement
       .on("tick", () => {
         setMemNodes([...memSimulation.nodes()]);
       });
@@ -369,88 +494,13 @@ const BubbleViewMemo = () => {
             height: "100vh",
           }}
         >
-          <div
-            onClick={handleContainerClick}
-            style={{
-              position: "relative",
-              width: "100vw",
-              height: "100vh",
-            }}
-          >
-            {/* GNSS Bubbles */}
-            {nodes.map((node) => {
-              const isSelected = selectedBubble?.gnssNum === node.data.gnssNum;
-              return (
-                <div
-                  key={node.data.gnssNum}
-                  className={`bubble ${isSelected ? "bubble-selected" : ""}`}
-                  style={{
-                    position: "absolute",
-                    left: (node.x ?? 0) - node.size / 2,
-                    top: (node.y ?? 0) - node.size / 2,
-                    width: node.size,
-                    height: node.size,
-                    opacity: selectedBubble && !isSelected ? 0.3 : undefined,
-                    transition: "opacity 0.3s ease",
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleSelect(node.data);
-                  }}
-                >
-                  <img
-                    src={node.data.imageUrl}
-                    alt={`GNSS ${node.data.gnssNum}`}
-                    loading="lazy"
-                    decoding="async"
-                    draggable={false}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                      borderRadius: "50%",
-                    }}
-                  />
-                  {node.data.memCount > 0 && (
-                    <div className="bubble-count">{node.data.memCount}</div>
-                  )}
-                </div>
-              );
-            })}
-            {/* MEM Bubbles - shown when a GNSS is selected */}
-            {memNodes.map((memNode, index) => (
-              <div
-                key={`mem-${index}`}
-                className="bubble mem-bubble"
-                style={{
-                  position: "absolute",
-                  left: (memNode.x ?? 0) - memNode.size / 2,
-                  top: (memNode.y ?? 0) - memNode.size / 2,
-                  width: memNode.size,
-                  height: memNode.size,
-                  zIndex: 100,
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  window.open(memNode.url, "_blank");
-                }}
-              >
-                <img
-                  src={memNode.url}
-                  alt={`MEM ${index + 1}`}
-                  loading="lazy"
-                  decoding="async"
-                  draggable={false}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    borderRadius: "50%",
-                  }}
-                />
-              </div>
-            ))}
-          </div>
+          <BubbleCanvas
+            nodes={nodes}
+            memNodes={memNodes}
+            selectedBubble={selectedBubble}
+            onSelect={handleSelect}
+            onContainerClick={handleContainerClick}
+          />
         </TransformComponent>
       </TransformWrapper>
     </>
