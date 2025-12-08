@@ -28,49 +28,6 @@ interface MemNode extends SimulationNodeDatum {
 const MEM_BUBBLE_SIZE = 50;
 const SKELETON_COUNT = 15;
 
-// Bubble image with loading state
-const BubbleImage = memo(function BubbleImage({
-  src,
-  alt,
-}: {
-  src: string;
-  alt: string;
-  size?: number;
-}) {
-  const [loaded, setLoaded] = useState(false);
-
-  return (
-    <>
-      {/* Skeleton background - always present, hidden when image loads */}
-      <div
-        className="bubble-skeleton"
-        style={{
-          position: "absolute",
-          inset: 0,
-          borderRadius: "50%",
-          background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
-          opacity: loaded ? 0 : 1,
-          transition: "opacity 0.3s ease-out",
-        }}
-      />
-      <img
-        src={src}
-        alt={alt}
-        loading="eager"
-        decoding="async"
-        draggable={false}
-        onLoad={() => setLoaded(true)}
-        style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          borderRadius: "50%",
-        }}
-      />
-    </>
-  );
-});
-
 // Skeleton bubble for loading state
 const SkeletonBubble = memo(function SkeletonBubble({
   index,
@@ -191,16 +148,25 @@ const BubbleCanvas = memo(function BubbleCanvas({
               height: node.size,
               opacity: selectedBubble && !isSelected ? 0.1 : undefined,
               transition: "opacity 0.3s ease",
+              background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
             }}
             onClick={(e) => {
               e.stopPropagation();
               onSelect(node.data);
             }}
           >
-            <BubbleImage
+            <img
               src={node.data.imageUrl}
               alt={`GNSS ${node.data.gnssNum}`}
-              size={node.size}
+              loading="lazy"
+              decoding="async"
+              draggable={false}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                borderRadius: "50%",
+              }}
             />
             {node.data.memCount > 0 && (
               <div className="bubble-count">{node.data.memCount}</div>
@@ -220,16 +186,25 @@ const BubbleCanvas = memo(function BubbleCanvas({
             width: memNode.size,
             height: memNode.size,
             zIndex: 100,
+            background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
           }}
           onClick={(e) => {
             e.stopPropagation();
             window.open(memNode.url, "_blank");
           }}
         >
-          <BubbleImage
+          <img
             src={memNode.url}
             alt={`MEM ${index + 1}`}
-            size={memNode.size}
+            loading="lazy"
+            decoding="async"
+            draggable={false}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              borderRadius: "50%",
+            }}
           />
         </div>
       ))}
