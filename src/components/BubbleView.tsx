@@ -138,14 +138,35 @@ const BubbleViewMemo = () => {
     );
   }
 
+  if (bubbles.length === 0) {
+    return (
+      <Box
+        sx={{
+          position: "fixed",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          textAlign: "center",
+        }}
+      >
+        <Typography variant="h6" color="text.secondary">
+          No MEMs found
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          Connect your wallet to see your collection
+        </Typography>
+      </Box>
+    );
+  }
+
   return (
     <>
       <BubbleInfo data={selectedBubble} />
       <TransformWrapper
         centerOnInit
-        initialScale={0.5}
-        maxScale={2}
-        minScale={isMob ? 0.3 : 0.1}
+        initialScale={1}
+        maxScale={3}
+        minScale={isMob ? 0.3 : 0.2}
         limitToBounds={false}
         customTransform={(x: number, y: number, scale: number) =>
           getMatrixTransformStyles(x, y, scale)
