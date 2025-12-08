@@ -126,30 +126,30 @@ const BubbleViewMemo = () => {
       // Center attraction - stronger for heavier bubbles (they stay at center)
       .force(
         "x",
-        forceX<BubbleNode>(centerX).strength((d) => 0.02 + (d.mass / maxMass) * 0.08)
+        forceX<BubbleNode>(centerX).strength((d) => 0.03 + (d.mass / maxMass) * 0.1)
       )
       .force(
         "y",
-        forceY<BubbleNode>(centerY).strength((d) => 0.02 + (d.mass / maxMass) * 0.08)
+        forceY<BubbleNode>(centerY).strength((d) => 0.03 + (d.mass / maxMass) * 0.1)
       )
-      // Gravitational attraction - bigger bubbles attract smaller ones
+      // Repulsion - bubbles push each other away (negative = repel)
       .force(
         "charge",
         forceManyBody<BubbleNode>()
-          .strength((d) => d.mass * 0.2)
-          .distanceMin(30)
-          .distanceMax(500)
+          .strength((d) => -d.mass * 0.8) // Negative for repulsion, scaled by mass
+          .distanceMin(20)
+          .distanceMax(300)
       )
       // Collision to prevent overlap
       .force(
         "collide",
         forceCollide<BubbleNode>()
-          .radius((d) => d.size / 2 + 3)
+          .radius((d) => d.size / 2 + 8)
           .strength(1)
           .iterations(3)
       )
-      .alphaDecay(0.005) // Very slow decay for continuous orbital motion
-      .velocityDecay(0.15) // Low friction to maintain orbits
+      .alphaDecay(0.008) // Slow decay for continuous motion
+      .velocityDecay(0.2) // Some friction to prevent chaos
       .on("tick", () => {
         setNodes([...simulation.nodes()]);
       });
@@ -187,11 +187,11 @@ const BubbleViewMemo = () => {
 
         simulationRef.current.force(
           "x",
-          forceX<BubbleNode>(centerX).strength((d) => 0.02 + (d.mass / maxMass) * 0.08)
+          forceX<BubbleNode>(centerX).strength((d) => 0.03 + (d.mass / maxMass) * 0.1)
         );
         simulationRef.current.force(
           "y",
-          forceY<BubbleNode>(centerY).strength((d) => 0.02 + (d.mass / maxMass) * 0.08)
+          forceY<BubbleNode>(centerY).strength((d) => 0.03 + (d.mass / maxMass) * 0.1)
         );
         simulationRef.current.alpha(0.3).restart();
       }
