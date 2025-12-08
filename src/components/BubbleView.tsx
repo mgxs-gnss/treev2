@@ -1,51 +1,25 @@
 import { Box, CircularProgress, Typography } from "@mui/material";
-import { memo, useMemo, useState, useCallback } from "react";
-import {
-  TransformWrapper,
-  TransformComponent,
-  getMatrixTransformStyles,
-} from "react-zoom-pan-pinch";
+import { memo, useState, useCallback, useEffect, useRef } from "react";
 import { useBubbleData, BubbleData } from "../hooks/useBubbleData";
-import { isMobile } from "../utils";
 
-const MIN_BUBBLE_SIZE = 60;
-const MAX_BUBBLE_SIZE = 300;
+const MIN_BUBBLE_SIZE = 40;
+const MAX_BUBBLE_SIZE = 200;
 
-interface BubbleProps {
+// Physics constants
+const GRAVITY = 0.5;
+const DAMPING = 0.98;
+const REPULSION = 2;
+const CENTER_PULL = 0.001;
+
+interface PhysicsBubble {
   data: BubbleData;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
   size: number;
-  onSelect: (data: BubbleData) => void;
-  isSelected: boolean;
+  mass: number;
 }
-
-const Bubble = memo(function Bubble({ data, size, onSelect, isSelected }: BubbleProps) {
-  return (
-    <div
-      className={`bubble ${isSelected ? "bubble-selected" : ""}`}
-      style={{
-        width: size,
-        height: size,
-        minWidth: size,
-        minHeight: size,
-      }}
-      onClick={() => onSelect(data)}
-    >
-      <img
-        src={data.imageUrl}
-        alt={`GNSS ${data.gnssNum}`}
-        loading="lazy"
-        decoding="async"
-        style={{
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          borderRadius: "50%",
-        }}
-      />
-      {data.memCount > 0 && <div className="bubble-count">{data.memCount}</div>}
-    </div>
-  );
-});
 
 const BubbleInfo = memo(function BubbleInfo({ data }: { data: BubbleData | null }) {
   if (!data) {
@@ -89,42 +63,161 @@ const BubbleInfo = memo(function BubbleInfo({ data }: { data: BubbleData | null 
 const BubbleViewMemo = () => {
   const { bubbles, loading, maxCount, minCount } = useBubbleData();
   const [selectedBubble, setSelectedBubble] = useState<BubbleData | null>(null);
-  const isMob = useMemo(() => isMobile(), []);
-
-  const handleSelect = useCallback((data: BubbleData) => {
-    setSelectedBubble((prev) => (prev?.gnssNum === data.gnssNum ? null : data));
-  }, []);
+  const [physicsBubbles, setPhysicsBubbles] = useState<PhysicsBubble[]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const animationRef = useRef<number>();
 
   // Calculate bubble size based on MEM count
   const calculateSize = useCallback(
     (count: number) => {
       if (maxCount === minCount) return (MIN_BUBBLE_SIZE + MAX_BUBBLE_SIZE) / 2;
-
-      // Use sqrt scale for better visual distribution
       const normalizedCount = (count - minCount) / (maxCount - minCount);
       const sqrtScale = Math.sqrt(normalizedCount);
-
       return MIN_BUBBLE_SIZE + sqrtScale * (MAX_BUBBLE_SIZE - MIN_BUBBLE_SIZE);
     },
     [maxCount, minCount]
   );
 
-  const bubbleElements = useMemo(() => {
-    // Limit bubbles on mobile
-    const displayBubbles = isMob ? bubbles.slice(0, 100) : bubbles;
+  // Initialize physics bubbles when data loads
+  useEffect(() => {
+    if (bubbles.length === 0) return;
 
-    return displayBubbles.map((bubble) => (
-      <Bubble
-        key={bubble.gnssNum}
-        data={bubble}
-        size={calculateSize(bubble.memCount)}
-        onSelect={handleSelect}
-        isSelected={selectedBubble?.gnssNum === bubble.gnssNum}
-      />
-    ));
-  }, [bubbles, calculateSize, handleSelect, selectedBubble, isMob]);
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    const centerX = width / 2;
+    const centerY = height / 2;
 
-  // Show loading spinner only when we have no bubbles yet
+    const initialized: PhysicsBubble[] = bubbles.map((bubble, i) => {
+      const size = calculateSize(bubble.memCount);
+      const angle = (i / bubbles.length) * Math.PI * 2;
+      const radius = Math.min(width, height) * 0.3;
+
+      return {
+        data: bubble,
+        x: centerX + Math.cos(angle) * radius + (Math.random() - 0.5) * 100,
+        y: centerY + Math.sin(angle) * radius + (Math.random() - 0.5) * 100,
+        vx: (Math.random() - 0.5) * 2,
+        vy: (Math.random() - 0.5) * 2,
+        size,
+        mass: size * size, // Mass proportional to area
+      };
+    });
+
+    setPhysicsBubbles(initialized);
+  }, [bubbles, calculateSize]);
+
+  // Physics simulation loop
+  useEffect(() => {
+    if (physicsBubbles.length === 0) return;
+
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    const centerX = width / 2;
+    const centerY = height / 2;
+
+    const simulate = () => {
+      setPhysicsBubbles((prev) => {
+        const next = prev.map((bubble) => ({ ...bubble }));
+
+        // Apply forces between all pairs
+        for (let i = 0; i < next.length; i++) {
+          const a = next[i];
+
+          // Pull towards center
+          const dxCenter = centerX - a.x;
+          const dyCenter = centerY - a.y;
+          a.vx += dxCenter * CENTER_PULL;
+          a.vy += dyCenter * CENTER_PULL;
+
+          for (let j = i + 1; j < next.length; j++) {
+            const b = next[j];
+
+            const dx = b.x - a.x;
+            const dy = b.y - a.y;
+            const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+            const minDist = (a.size + b.size) / 2;
+
+            if (dist < minDist) {
+              // Collision - repel
+              const overlap = minDist - dist;
+              const nx = dx / dist;
+              const ny = dy / dist;
+
+              const totalMass = a.mass + b.mass;
+              const aRatio = b.mass / totalMass;
+              const bRatio = a.mass / totalMass;
+
+              a.x -= nx * overlap * aRatio * REPULSION;
+              a.y -= ny * overlap * aRatio * REPULSION;
+              b.x += nx * overlap * bRatio * REPULSION;
+              b.y += ny * overlap * bRatio * REPULSION;
+
+              // Bounce velocities
+              a.vx -= nx * REPULSION;
+              a.vy -= ny * REPULSION;
+              b.vx += nx * REPULSION;
+              b.vy += ny * REPULSION;
+            } else {
+              // Gravitational attraction - bigger attracts smaller
+              const force = (GRAVITY * a.mass * b.mass) / (dist * dist);
+              const fx = (dx / dist) * force;
+              const fy = (dy / dist) * force;
+
+              // Apply force inversely proportional to mass
+              a.vx += fx / a.mass;
+              a.vy += fy / a.mass;
+              b.vx -= fx / b.mass;
+              b.vy -= fy / b.mass;
+            }
+          }
+
+          // Apply damping
+          a.vx *= DAMPING;
+          a.vy *= DAMPING;
+
+          // Update position
+          a.x += a.vx;
+          a.y += a.vy;
+
+          // Boundary constraints
+          const padding = a.size / 2;
+          if (a.x < padding) {
+            a.x = padding;
+            a.vx *= -0.5;
+          }
+          if (a.x > width - padding) {
+            a.x = width - padding;
+            a.vx *= -0.5;
+          }
+          if (a.y < padding) {
+            a.y = padding;
+            a.vy *= -0.5;
+          }
+          if (a.y > height - padding) {
+            a.y = height - padding;
+            a.vy *= -0.5;
+          }
+        }
+
+        return next;
+      });
+
+      animationRef.current = requestAnimationFrame(simulate);
+    };
+
+    animationRef.current = requestAnimationFrame(simulate);
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+    };
+  }, [physicsBubbles.length]);
+
+  const handleSelect = useCallback((data: BubbleData) => {
+    setSelectedBubble((prev) => (prev?.gnssNum === data.gnssNum ? null : data));
+  }, []);
+
   if (loading && bubbles.length === 0) {
     return (
       <Box
@@ -168,21 +261,48 @@ const BubbleViewMemo = () => {
   return (
     <>
       <BubbleInfo data={selectedBubble} />
-      <TransformWrapper
-        centerOnInit
-        initialScale={1}
-        maxScale={3}
-        minScale={isMob ? 0.3 : 0.2}
-        limitToBounds={false}
-        customTransform={(x: number, y: number, scale: number) =>
-          getMatrixTransformStyles(x, y, scale)
-        }
-        wheel={{ step: 0.2 }}
+      <div
+        ref={containerRef}
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100vw",
+          height: "100vh",
+          overflow: "hidden",
+        }}
       >
-        <TransformComponent>
-          <div className="bubble-container">{bubbleElements}</div>
-        </TransformComponent>
-      </TransformWrapper>
+        {physicsBubbles.map((bubble) => (
+          <div
+            key={bubble.data.gnssNum}
+            className={`bubble ${selectedBubble?.gnssNum === bubble.data.gnssNum ? "bubble-selected" : ""}`}
+            style={{
+              position: "absolute",
+              left: bubble.x - bubble.size / 2,
+              top: bubble.y - bubble.size / 2,
+              width: bubble.size,
+              height: bubble.size,
+            }}
+            onClick={() => handleSelect(bubble.data)}
+          >
+            <img
+              src={bubble.data.imageUrl}
+              alt={`GNSS ${bubble.data.gnssNum}`}
+              loading="lazy"
+              decoding="async"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                borderRadius: "50%",
+              }}
+            />
+            {bubble.data.memCount > 0 && (
+              <div className="bubble-count">{bubble.data.memCount}</div>
+            )}
+          </div>
+        ))}
+      </div>
     </>
   );
 };
