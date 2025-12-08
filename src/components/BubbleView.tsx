@@ -38,36 +38,33 @@ const BubbleImage = memo(function BubbleImage({
   size?: number;
 }) {
   const [loaded, setLoaded] = useState(false);
-  const [error, setError] = useState(false);
 
   return (
     <>
-      {!loaded && !error && (
-        <div
-          className="bubble-skeleton"
-          style={{
-            position: "absolute",
-            inset: 0,
-            borderRadius: "50%",
-            background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
-          }}
-        />
-      )}
+      {/* Skeleton background - always present, hidden when image loads */}
+      <div
+        className="bubble-skeleton"
+        style={{
+          position: "absolute",
+          inset: 0,
+          borderRadius: "50%",
+          background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
+          opacity: loaded ? 0 : 1,
+          transition: "opacity 0.3s ease-out",
+        }}
+      />
       <img
         src={src}
         alt={alt}
-        loading="lazy"
+        loading="eager"
         decoding="async"
         draggable={false}
         onLoad={() => setLoaded(true)}
-        onError={() => setError(true)}
         style={{
           width: "100%",
           height: "100%",
           objectFit: "cover",
           borderRadius: "50%",
-          opacity: loaded ? 1 : 0,
-          transition: "opacity 0.4s ease-in-out",
         }}
       />
     </>
