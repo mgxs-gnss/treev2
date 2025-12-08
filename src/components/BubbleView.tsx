@@ -1,4 +1,4 @@
-import { Box, CircularProgress, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { memo, useState, useCallback, useEffect, useRef } from "react";
 import {
   forceSimulation,
@@ -26,6 +26,81 @@ interface MemNode extends SimulationNodeDatum {
 }
 
 const MEM_BUBBLE_SIZE = 50;
+const SKELETON_COUNT = 15;
+
+// Bubble image with loading state
+const BubbleImage = memo(function BubbleImage({
+  src,
+  alt,
+}: {
+  src: string;
+  alt: string;
+  size?: number;
+}) {
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
+
+  return (
+    <>
+      {!loaded && !error && (
+        <div
+          className="bubble-skeleton"
+          style={{
+            position: "absolute",
+            inset: 0,
+            borderRadius: "50%",
+            background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
+          }}
+        />
+      )}
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        decoding="async"
+        draggable={false}
+        onLoad={() => setLoaded(true)}
+        onError={() => setError(true)}
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          borderRadius: "50%",
+          opacity: loaded ? 1 : 0,
+          transition: "opacity 0.4s ease-in-out",
+        }}
+      />
+    </>
+  );
+});
+
+// Skeleton bubble for loading state
+const SkeletonBubble = memo(function SkeletonBubble({
+  index,
+  total,
+}: {
+  index: number;
+  total: number;
+}) {
+  const angle = (index / total) * Math.PI * 2;
+  const radius = 150 + Math.random() * 100;
+  const size = 40 + Math.random() * 80;
+  const delay = index * 0.1;
+
+  return (
+    <div
+      className="bubble bubble-skeleton-animated"
+      style={{
+        position: "absolute",
+        left: `calc(50% + ${Math.cos(angle) * radius}px - ${size / 2}px)`,
+        top: `calc(50% + ${Math.sin(angle) * radius}px - ${size / 2}px)`,
+        width: size,
+        height: size,
+        animationDelay: `${delay}s`,
+      }}
+    />
+  );
+});
 
 const BubbleInfo = memo(function BubbleInfo({ data }: { data: BubbleData | null }) {
   if (!data) {
@@ -125,18 +200,10 @@ const BubbleCanvas = memo(function BubbleCanvas({
               onSelect(node.data);
             }}
           >
-            <img
+            <BubbleImage
               src={node.data.imageUrl}
               alt={`GNSS ${node.data.gnssNum}`}
-              loading="lazy"
-              decoding="async"
-              draggable={false}
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                borderRadius: "50%",
-              }}
+              size={node.size}
             />
             {node.data.memCount > 0 && (
               <div className="bubble-count">{node.data.memCount}</div>
@@ -162,18 +229,10 @@ const BubbleCanvas = memo(function BubbleCanvas({
             window.open(memNode.url, "_blank");
           }}
         >
-          <img
+          <BubbleImage
             src={memNode.url}
             alt={`MEM ${index + 1}`}
-            loading="lazy"
-            decoding="async"
-            draggable={false}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              borderRadius: "50%",
-            }}
+            size={memNode.size}
           />
         </div>
       ))}
@@ -435,16 +494,51 @@ const BubbleViewMemo = () => {
       <Box
         sx={{
           position: "fixed",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          textAlign: "center",
+          inset: 0,
+          overflow: "hidden",
         }}
       >
-        <CircularProgress color="primary" />
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-          Loading GNSS...
-        </Typography>
+        {/* Animated skeleton bubbles */}
+        {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+          <SkeletonBubble key={i} index={i} total={SKELETON_COUNT} />
+        ))}
+        {/* Loading text */}
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            textAlign: "center",
+            zIndex: 10,
+          }}
+        >
+          <Typography
+            variant="h6"
+            sx={{
+              color: "rgba(255,255,255,0.9)",
+              textShadow: "0 2px 10px rgba(0,0,0,0.5)",
+              mb: 1,
+            }}
+          >
+            Loading GNSS
+          </Typography>
+          <Box sx={{ display: "flex", justifyContent: "center", gap: 0.5 }}>
+            {[0, 1, 2].map((i) => (
+              <Box
+                key={i}
+                sx={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  bgcolor: "primary.main",
+                  animation: "pulse 1s ease-in-out infinite",
+                  animationDelay: `${i * 0.2}s`,
+                }}
+              />
+            ))}
+          </Box>
+        </Box>
       </Box>
     );
   }
