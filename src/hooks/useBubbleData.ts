@@ -42,9 +42,9 @@ export const useBubbleData = (): UseBubbleDataResult => {
           memCount: mems.length,
         }));
 
-      // Sort by MEM count descending and take top 100
+      // Sort by MEM count descending and take top 200
       bubbleData.sort((a, b) => b.memCount - a.memCount);
-      const displayBubbles = bubbleData.slice(0, 100);
+      const displayBubbles = bubbleData.slice(0, 200);
 
       // Calculate min/max
       const counts = displayBubbles.map((b) => b.memCount);
