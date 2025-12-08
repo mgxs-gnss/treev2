@@ -17,6 +17,8 @@ const Mem = memo(
     return (
       <img
         loading="lazy"
+        decoding="async"
+        fetchPriority={active ? "high" : "low"}
         className={className}
         data-container
         id={index}

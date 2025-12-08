@@ -14,7 +14,16 @@ _plugins.unshift(MillionLint.vite())
 export default defineConfig({
   build: {
     outDir: "dist",
-    minify: "esbuild"
+    minify: "esbuild",
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-mui': ['@mui/material', '@mui/icons-material'],
+          'vendor-zoom': ['react-zoom-pan-pinch'],
+          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+        }
+      }
+    }
   },
   server: {
     port: 3004
