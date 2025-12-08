@@ -82,45 +82,74 @@ const BubbleViewMemo = () => {
 
     const width = window.innerWidth;
     const height = window.innerHeight;
+    const centerX = width / 2;
+    const centerY = height / 2;
 
-    // Create nodes with initial positions
-    const initialNodes: BubbleNode[] = bubbles.map((bubble, i) => {
+    // Sort bubbles by mass (biggest first) for layering
+    const sortedBubbles = [...bubbles].sort((a, b) => b.memCount - a.memCount);
+
+    // Find max mass for normalization
+    const masses = sortedBubbles.map((b) => {
+      const size = calculateSize(b.memCount);
+      return size * Math.sqrt(b.memCount);
+    });
+    const maxMass = Math.max(...masses);
+
+    // Create nodes with initial positions - bigger ones closer to center
+    const initialNodes: BubbleNode[] = sortedBubbles.map((bubble, i) => {
       const size = calculateSize(bubble.memCount);
-      const angle = (i / bubbles.length) * Math.PI * 2;
-      const radius = Math.min(width, height) * 0.25;
-
-      // Mass combines visual size and MEM count for gravitational attraction
       const mass = size * Math.sqrt(bubble.memCount);
+      const normalizedMass = mass / maxMass; // 0 to 1, where 1 is heaviest
+
+      // Bigger bubbles start closer to center, smaller ones further out
+      const orbitRadius = Math.min(width, height) * 0.3 * (1 - normalizedMass * 0.8);
+      const angle = (i / sortedBubbles.length) * Math.PI * 2 + Math.random() * 0.5;
+
+      // Give smaller bubbles initial tangential velocity for orbital motion
+      const orbitalSpeed = (1 - normalizedMass) * 3; // Smaller = faster orbit
+      const vx = -Math.sin(angle) * orbitalSpeed;
+      const vy = Math.cos(angle) * orbitalSpeed;
 
       return {
         data: bubble,
         size,
         mass,
-        x: width / 2 + Math.cos(angle) * radius,
-        y: height / 2 + Math.sin(angle) * radius,
+        x: centerX + Math.cos(angle) * orbitRadius,
+        y: centerY + Math.sin(angle) * orbitRadius,
+        vx,
+        vy,
       };
     });
 
-    // Create force simulation
+    // Create force simulation with orbital dynamics
     const simulation = forceSimulation<BubbleNode>(initialNodes)
-      // Attract all bubbles to center
-      .force("x", forceX(width / 2).strength(0.05))
-      .force("y", forceY(height / 2).strength(0.05))
+      // Center attraction - stronger for heavier bubbles (they stay at center)
+      .force(
+        "x",
+        forceX<BubbleNode>(centerX).strength((d) => 0.02 + (d.mass / maxMass) * 0.08)
+      )
+      .force(
+        "y",
+        forceY<BubbleNode>(centerY).strength((d) => 0.02 + (d.mass / maxMass) * 0.08)
+      )
+      // Gravitational attraction - bigger bubbles attract smaller ones
       .force(
         "charge",
         forceManyBody<BubbleNode>()
-          .strength((d) => d.mass * 0.15) // Mass-based attraction (size * memCount)
-          .distanceMax(400)
+          .strength((d) => d.mass * 0.2)
+          .distanceMin(30)
+          .distanceMax(500)
       )
+      // Collision to prevent overlap
       .force(
         "collide",
         forceCollide<BubbleNode>()
-          .radius((d) => d.size / 2 + 5)
-          .strength(0.8)
-          .iterations(2)
+          .radius((d) => d.size / 2 + 3)
+          .strength(1)
+          .iterations(3)
       )
-      .alphaDecay(0.01) // Slower decay for smoother animation
-      .velocityDecay(0.3) // More damping
+      .alphaDecay(0.005) // Very slow decay for continuous orbital motion
+      .velocityDecay(0.15) // Low friction to maintain orbits
       .on("tick", () => {
         setNodes([...simulation.nodes()]);
       });
@@ -132,14 +161,38 @@ const BubbleViewMemo = () => {
     };
   }, [bubbles, calculateSize]);
 
+  // Store maxMass for resize handler
+  const maxMassRef = useRef<number>(1);
+
+  // Update maxMass when bubbles change
+  useEffect(() => {
+    if (bubbles.length > 0) {
+      const masses = bubbles.map((b) => {
+        const size = calculateSize(b.memCount);
+        return size * Math.sqrt(b.memCount);
+      });
+      maxMassRef.current = Math.max(...masses);
+    }
+  }, [bubbles, calculateSize]);
+
   // Handle window resize
   useEffect(() => {
     const handleResize = () => {
       if (simulationRef.current) {
         const width = window.innerWidth;
         const height = window.innerHeight;
-        simulationRef.current.force("x", forceX(width / 2).strength(0.05));
-        simulationRef.current.force("y", forceY(height / 2).strength(0.05));
+        const centerX = width / 2;
+        const centerY = height / 2;
+        const maxMass = maxMassRef.current;
+
+        simulationRef.current.force(
+          "x",
+          forceX<BubbleNode>(centerX).strength((d) => 0.02 + (d.mass / maxMass) * 0.08)
+        );
+        simulationRef.current.force(
+          "y",
+          forceY<BubbleNode>(centerY).strength((d) => 0.02 + (d.mass / maxMass) * 0.08)
+        );
         simulationRef.current.alpha(0.3).restart();
       }
     };
