@@ -5,6 +5,7 @@ export interface BubbleData {
   gnssNum: string;
   imageUrl: string;
   memCount: number;
+  memUrls: string[]; // URLs of individual MEMs
 }
 
 interface UseBubbleDataResult {
@@ -40,6 +41,7 @@ export const useBubbleData = (): UseBubbleDataResult => {
           gnssNum,
           imageUrl: `https://assets.mgxs.co/${gnssNum}.jpg`,
           memCount: mems.length,
+          memUrls: mems, // Store individual MEM URLs
         }));
 
       // Sort by MEM count descending and take top 200

@@ -106,6 +106,32 @@ body {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
+/* MEM Bubbles - smaller orbiting bubbles */
+.mem-bubble {
+  opacity: 1 !important;
+  box-shadow: 0 0 0 3px #4caf50, 0 4px 15px rgba(76, 175, 80, 0.4);
+  animation: mem-pop-in 0.3s ease-out;
+}
+
+.mem-bubble:hover {
+  box-shadow: 0 0 0 3px #4caf50, 0 8px 30px rgba(76, 175, 80, 0.6);
+  transform: scale(1.15);
+}
+
+@keyframes mem-pop-in {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 /* Tab Navigation */
 .view-tabs {
   position: fixed;
