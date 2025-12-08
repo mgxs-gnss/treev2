@@ -5,3 +5,6 @@ export { default as Paragraph } from "./Paragraph";
 export * from "./Search";
 export * from "./UI";
 export * from "./ZoomPanComponent";
+export * from "./BubbleView";
+export * from "./ViewTabs";
+export * from "./Layout";

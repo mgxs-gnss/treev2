@@ -1,10 +1,20 @@
 import { createBrowserRouter } from "react-router-dom";
-import { ZoomPanComponent } from "./components";
+import { ZoomPanComponent, BubbleView, Layout } from "./components";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <ZoomPanComponent />,
+    element: <Layout />,
+    children: [
+      {
+        index: true,
+        element: <ZoomPanComponent />,
+      },
+      {
+        path: "bubbles",
+        element: <BubbleView />,
+      },
+    ],
   },
 ]);
 
