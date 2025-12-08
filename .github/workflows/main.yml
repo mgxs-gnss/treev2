@@ -69,8 +69,8 @@ jobs:
       - name: Create production artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build
-          path: ./build
+          name: dist
+          path: ./dist
           if-no-files-found: error
           retention-days: 1
 
@@ -85,8 +85,8 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
-          name: build
-          path: ./build
+          name: dist
+          path: ./dist
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -96,7 +96,7 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
 
       - name: Sync to S3
-        run: aws s3 sync ./build ${{ secrets.AWS_S3_BUCKET }} --follow-symlinks --delete
+        run: aws s3 sync ./dist ${{ secrets.AWS_S3_BUCKET }} --follow-symlinks --delete
 
       - name: Invalidate CloudFront
         if: github.ref == 'refs/heads/main'

@@ -13,7 +13,7 @@ const _plugins = [million.vite({
 _plugins.unshift(MillionLint.vite())
 export default defineConfig({
   build: {
-    outDir: "build",
+    outDir: "dist",
     minify: "esbuild"
   },
   server: {
