@@ -32,7 +32,7 @@ const Bubble = memo(function Bubble({ data, size, onSelect, isSelected }: Bubble
     >
       <img
         src={data.imageUrl}
-        alt={data.name || `GNSS ${data.gnssNum}`}
+        alt={`GNSS ${data.gnssNum}`}
         loading="lazy"
         decoding="async"
         style={{
@@ -58,21 +58,12 @@ const BubbleInfo = memo(function BubbleInfo({ data }: { data: BubbleData | null 
     );
   }
 
-  // Get key attributes to display
-  const specie = data.attributes?.find((a) => a.trait_type === "Specie")?.value;
-  const subspecie = data.attributes?.find((a) => a.trait_type === "Subspecie")?.value;
-
   return (
     <Box className="bubble-info">
-      <Typography variant="h6">{data.name || `GNSS #${data.gnssNum}`}</Typography>
+      <Typography variant="h6">GNSS #{data.gnssNum}</Typography>
       <Typography variant="body1" color="primary" sx={{ fontWeight: "bold" }}>
         {data.memCount} MEM{data.memCount !== 1 ? "s" : ""}
       </Typography>
-      {specie && (
-        <Typography variant="body2" color="text.secondary">
-          {specie}{subspecie && subspecie !== "None" ? ` / ${subspecie}` : ""}
-        </Typography>
-      )}
       <Box sx={{ mt: 1, display: "flex", gap: 1, flexWrap: "wrap" }}>
         <a
           href={`https://opensea.io/assets/ethereum/0x769ed5662d86b8c29bce4df6a8684473a4def783/${data.gnssNum}`}

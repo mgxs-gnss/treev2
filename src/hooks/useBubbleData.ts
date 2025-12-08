@@ -1,26 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
-import { getRandomGNSS } from "../utils";
 import { isMobile } from "../utils";
-
-const NFT_API = "https://nft.mgxs.co";
+import { API } from "../config";
 
 export interface BubbleData {
   gnssNum: string;
   imageUrl: string;
   memCount: number;
-  name: string;
-  attributes: Array<{ trait_type: string; value: string | number }>;
-}
-
-interface NftResponse {
-  _id: string;
-  image: string;
-  name: string;
-  description: string;
-  attributes: Array<{ trait_type: string; value: string | number }>;
-  mems: Array<unknown>;
-  animation_url?: string;
-  external_url?: string;
 }
 
 interface UseBubbleDataResult {
@@ -29,6 +14,9 @@ interface UseBubbleDataResult {
   maxCount: number;
   minCount: number;
 }
+
+// API returns: [["gnss_number", ["mem_url_1", "mem_url_2", ...]], ...]
+type GnssMemsResponse = [string, string[]][];
 
 export const useBubbleData = (): UseBubbleDataResult => {
   const [bubbles, setBubbles] = useState<BubbleData[]>([]);
@@ -40,64 +28,34 @@ export const useBubbleData = (): UseBubbleDataResult => {
     try {
       setLoading(true);
 
-      // Get random GNSS numbers to fetch
-      const gnssNumbers = getRandomGNSS();
+      // Fetch all GNSS with MEMs in one request
+      const response = await fetch(`${API}/mem/list/gnss`);
+      if (!response.ok) throw new Error("Failed to fetch GNSS MEMs list");
+
+      const data: GnssMemsResponse = await response.json();
+
+      // Transform to BubbleData format
+      const bubbleData: BubbleData[] = data
+        .filter(([_, mems]) => mems.length > 0) // Only include GNSS with MEMs
+        .map(([gnssNum, mems]) => ({
+          gnssNum,
+          imageUrl: `https://assets.mgxs.co/${gnssNum}.png`,
+          memCount: mems.length,
+        }));
+
+      // Sort by MEM count descending
+      bubbleData.sort((a, b) => b.memCount - a.memCount);
+
+      // Limit on mobile
       const isMob = isMobile();
+      const displayBubbles = isMob ? bubbleData.slice(0, 100) : bubbleData;
 
-      // Limit concurrent requests - fetch in batches
-      const batchSize = isMob ? 20 : 50;
-      const maxBubbles = isMob ? 50 : 150;
-      const numbersToFetch = gnssNumbers.slice(0, maxBubbles);
-
-      const fetchedBubbles: BubbleData[] = [];
-
-      // Fetch in batches to avoid overwhelming the server
-      for (let i = 0; i < numbersToFetch.length; i += batchSize) {
-        const batch = numbersToFetch.slice(i, i + batchSize);
-
-        const batchResults = await Promise.allSettled(
-          batch.map(async (gnssNum) => {
-            const response = await fetch(`${NFT_API}/${gnssNum}`);
-            if (!response.ok) throw new Error(`Failed to fetch GNSS ${gnssNum}`);
-            const data: NftResponse = await response.json();
-
-            return {
-              gnssNum: gnssNum.toString(),
-              imageUrl: data.image,
-              memCount: data.mems?.length || 0,
-              name: data.name,
-              attributes: data.attributes || [],
-            };
-          })
-        );
-
-        // Collect successful results - only include GNSS with MEMs
-        for (const result of batchResults) {
-          if (result.status === "fulfilled" && result.value.memCount > 0) {
-            fetchedBubbles.push(result.value);
-          }
-        }
-
-        // Update state progressively so user sees bubbles appearing
-        if (fetchedBubbles.length > 0) {
-          const sorted = [...fetchedBubbles].sort((a, b) => b.memCount - a.memCount);
-          const counts = sorted.map((b) => b.memCount).filter((c) => c > 0);
-          const max = counts.length > 0 ? Math.max(...counts) : 1;
-          const min = counts.length > 0 ? Math.min(...counts) : 0;
-
-          setBubbles(sorted);
-          setMaxCount(max);
-          setMinCount(min);
-        }
-      }
-
-      // Final sort and update
-      const sorted = fetchedBubbles.sort((a, b) => b.memCount - a.memCount);
-      const counts = sorted.map((b) => b.memCount).filter((c) => c > 0);
+      // Calculate min/max
+      const counts = displayBubbles.map((b) => b.memCount);
       const max = counts.length > 0 ? Math.max(...counts) : 1;
-      const min = counts.length > 0 ? Math.min(...counts) : 0;
+      const min = counts.length > 0 ? Math.min(...counts) : 1;
 
-      setBubbles(sorted);
+      setBubbles(displayBubbles);
       setMaxCount(max);
       setMinCount(min);
     } catch (e) {
