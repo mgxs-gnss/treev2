@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import { isMobile } from "../utils";
 import { API } from "../config";
 
 export interface BubbleData {
@@ -43,12 +42,9 @@ export const useBubbleData = (): UseBubbleDataResult => {
           memCount: mems.length,
         }));
 
-      // Sort by MEM count descending
+      // Sort by MEM count descending and take top 100
       bubbleData.sort((a, b) => b.memCount - a.memCount);
-
-      // Limit on mobile
-      const isMob = isMobile();
-      const displayBubbles = isMob ? bubbleData.slice(0, 100) : bubbleData;
+      const displayBubbles = bubbleData.slice(0, 100);
 
       // Calculate min/max
       const counts = displayBubbles.map((b) => b.memCount);
