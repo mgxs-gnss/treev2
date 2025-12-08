@@ -19,7 +19,9 @@ interface BubbleProps {
 }
 
 const Bubble = memo(function Bubble({ data, size, onSelect, isSelected }: BubbleProps) {
-  const optimizedSrc = data.imageUrl.replace(".jpg", "_low.jpg");
+  // Use the image URL directly from API (already points to assets.mgxs.co)
+  // Try low quality version first, fallback to original
+  const optimizedSrc = data.imageUrl.replace(".png", "_low.png");
 
   return (
     <div
@@ -34,9 +36,13 @@ const Bubble = memo(function Bubble({ data, size, onSelect, isSelected }: Bubble
     >
       <img
         src={optimizedSrc}
-        alt={`GNSS ${data.gnssNum}`}
+        alt={data.name || `GNSS ${data.gnssNum}`}
         loading="lazy"
         decoding="async"
+        onError={(e) => {
+          // Fallback to original if low quality doesn't exist
+          (e.target as HTMLImageElement).src = data.imageUrl;
+        }}
         style={{
           width: "100%",
           height: "100%",
@@ -44,7 +50,7 @@ const Bubble = memo(function Bubble({ data, size, onSelect, isSelected }: Bubble
           borderRadius: "50%",
         }}
       />
-      <div className="bubble-count">{data.memCount}</div>
+      {data.memCount > 0 && <div className="bubble-count">{data.memCount}</div>}
     </div>
   );
 });
@@ -60,25 +66,37 @@ const BubbleInfo = memo(function BubbleInfo({ data }: { data: BubbleData | null 
     );
   }
 
+  // Get key attributes to display
+  const specie = data.attributes?.find((a) => a.trait_type === "Specie")?.value;
+  const subspecie = data.attributes?.find((a) => a.trait_type === "Subspecie")?.value;
+
   return (
     <Box className="bubble-info">
-      <Typography variant="h6">GNSS #{data.gnssNum}</Typography>
-      <Typography variant="body1" color="primary">
-        {data.memCount} MEM{data.memCount > 1 ? "s" : ""}
+      <Typography variant="h6">{data.name || `GNSS #${data.gnssNum}`}</Typography>
+      <Typography variant="body1" color="primary" sx={{ fontWeight: "bold" }}>
+        {data.memCount} MEM{data.memCount !== 1 ? "s" : ""}
       </Typography>
-      {data.owners.length > 0 && (
+      {specie && (
         <Typography variant="body2" color="text.secondary">
-          {data.owners.length} owner{data.owners.length > 1 ? "s" : ""}
+          {specie}{subspecie && subspecie !== "None" ? ` / ${subspecie}` : ""}
         </Typography>
       )}
-      <Box sx={{ mt: 1 }}>
+      <Box sx={{ mt: 1, display: "flex", gap: 1, flexWrap: "wrap" }}>
         <a
           href={`https://opensea.io/assets/ethereum/0x769ed5662d86b8c29bce4df6a8684473a4def783/${data.gnssNum}`}
           target="_blank"
           rel="noopener noreferrer"
           style={{ color: "#1976d2", fontSize: "0.875rem" }}
         >
-          View on OpenSea →
+          OpenSea
+        </a>
+        <a
+          href={`https://embed.mgxs.co/${data.gnssNum}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: "#1976d2", fontSize: "0.875rem" }}
+        >
+          View Live
         </a>
       </Box>
     </Box>
@@ -123,7 +141,8 @@ const BubbleViewMemo = () => {
     ));
   }, [bubbles, calculateSize, handleSelect, selectedBubble, isMob]);
 
-  if (loading) {
+  // Show loading spinner only when we have no bubbles yet
+  if (loading && bubbles.length === 0) {
     return (
       <Box
         sx={{
@@ -131,14 +150,18 @@ const BubbleViewMemo = () => {
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
+          textAlign: "center",
         }}
       >
         <CircularProgress color="primary" />
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+          Loading GNSS...
+        </Typography>
       </Box>
     );
   }
 
-  if (bubbles.length === 0) {
+  if (!loading && bubbles.length === 0) {
     return (
       <Box
         sx={{
@@ -150,10 +173,10 @@ const BubbleViewMemo = () => {
         }}
       >
         <Typography variant="h6" color="text.secondary">
-          No MEMs found
+          Failed to load GNSS data
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Connect your wallet to see your collection
+          Please try refreshing the page
         </Typography>
       </Box>
     );
