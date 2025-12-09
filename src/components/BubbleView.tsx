@@ -114,15 +114,16 @@ const BubbleCanvas = memo(function BubbleCanvas({
   const { setTransform } = useControls();
   const selectedNode = nodes.find((n) => n.data.gnssNum === selectedBubble?.gnssNum);
 
-  // Center on selected bubble - fast animation
+  // Center on selected bubble with zoom - fast animation
   useEffect(() => {
     if (selectedNode) {
+      const scale = 1.5; // Zoom in when selecting
       const x = selectedNode.x ?? window.innerWidth / 2;
       const y = selectedNode.y ?? window.innerHeight / 2;
-      // Center the view on the selected bubble
-      const newX = window.innerWidth / 2 - x;
-      const newY = window.innerHeight / 2 - y;
-      setTransform(newX, newY, 1, 200, "easeOut"); // Fast 200ms animation
+      // Center the view on the selected bubble with zoom
+      const newX = window.innerWidth / 2 - x * scale;
+      const newY = window.innerHeight / 2 - y * scale;
+      setTransform(newX, newY, scale, 200, "easeOut"); // Fast 200ms animation with zoom
     }
   }, [selectedNode, setTransform]);
 
