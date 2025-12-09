@@ -252,3 +252,17 @@ body {
   );
   animation: shimmer 1.5s infinite;
 }
+
+/* GTA-style grid item loading - fade in as camera moves */
+.grid-item-fade {
+  animation: grid-fade-in 0.2s ease-out;
+}
+
+@keyframes grid-fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}

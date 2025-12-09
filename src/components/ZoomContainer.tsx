@@ -33,7 +33,7 @@ const ZoomContainer = React.memo(
     const { visibleItems, scale } = useViewportVirtualization({
       totalImages: imageCount,
       transformState,
-      buffer: 3,
+      buffer: 5, // Larger buffer for GTA-style preloading
     });
 
     // Get image URL by index
@@ -73,6 +73,7 @@ const ZoomContainer = React.memo(
         return (
           <div
             key={url}
+            className="grid-item-fade"
             style={{
               position: "absolute",
               left,
