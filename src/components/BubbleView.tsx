@@ -27,6 +27,104 @@ interface MemNode extends SimulationNodeDatum {
 
 const MEM_BUBBLE_SIZE = 50;
 const SKELETON_COUNT = 15;
+const TICK_THROTTLE_MS = 16; // ~60fps throttle for state updates
+
+// Individual GNSS bubble - memoized to prevent re-renders
+const GnssBubble = memo(function GnssBubble({
+  node,
+  isSelected,
+  isFaded,
+  onSelect,
+}: {
+  node: BubbleNode;
+  isSelected: boolean;
+  isFaded: boolean;
+  onSelect: (data: BubbleData) => void;
+}) {
+  return (
+    <div
+      className={`bubble ${isSelected ? "bubble-selected" : ""}`}
+      style={{
+        position: "absolute",
+        left: 0,
+        top: 0,
+        transform: `translate(${(node.x ?? 0) - node.size / 2}px, ${(node.y ?? 0) - node.size / 2}px)`,
+        width: node.size,
+        height: node.size,
+        opacity: isFaded ? 0.1 : undefined,
+        willChange: "transform",
+        background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
+      }}
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelect(node.data);
+      }}
+    >
+      <img
+        src={node.data.imageUrl}
+        alt={`GNSS ${node.data.gnssNum}`}
+        loading="lazy"
+        decoding="async"
+        draggable={false}
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          borderRadius: "50%",
+        }}
+      />
+      {node.data.memCount > 0 && (
+        <div className="bubble-count">{node.data.memCount}</div>
+      )}
+    </div>
+  );
+});
+
+// Individual MEM bubble - memoized
+const MemBubble = memo(function MemBubble({
+  memNode,
+  index,
+  onMemClick,
+}: {
+  memNode: MemNode;
+  index: number;
+  onMemClick: (url: string) => void;
+}) {
+  return (
+    <div
+      className="bubble mem-bubble"
+      style={{
+        position: "absolute",
+        left: 0,
+        top: 0,
+        transform: `translate(${(memNode.x ?? 0) - memNode.size / 2}px, ${(memNode.y ?? 0) - memNode.size / 2}px)`,
+        width: memNode.size,
+        height: memNode.size,
+        zIndex: 100,
+        willChange: "transform",
+        background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
+      }}
+      onClick={(e) => {
+        e.stopPropagation();
+        onMemClick(memNode.url);
+      }}
+    >
+      <img
+        src={memNode.url}
+        alt={`MEM ${index + 1}`}
+        loading="lazy"
+        decoding="async"
+        draggable={false}
+        style={{
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          borderRadius: "50%",
+        }}
+      />
+    </div>
+  );
+});
 
 // Skeleton bubble for loading state
 const SkeletonBubble = memo(function SkeletonBubble({
@@ -119,7 +217,6 @@ const BubbleCanvas = memo(function BubbleCanvas({
     if (selectedNode) {
       const x = selectedNode.x ?? window.innerWidth / 2;
       const y = selectedNode.y ?? window.innerHeight / 2;
-      // Center the view on the selected bubble
       const newX = window.innerWidth / 2 - x;
       const newY = window.innerHeight / 2 - y;
       setTransform(newX, newY, 1, 500, "easeOut");
@@ -136,79 +233,23 @@ const BubbleCanvas = memo(function BubbleCanvas({
       }}
     >
       {/* GNSS Bubbles */}
-      {nodes.map((node) => {
-        const isSelected = selectedBubble?.gnssNum === node.data.gnssNum;
-        return (
-          <div
-            key={node.data.gnssNum}
-            className={`bubble ${isSelected ? "bubble-selected" : ""}`}
-            style={{
-              position: "absolute",
-              left: (node.x ?? 0) - node.size / 2,
-              top: (node.y ?? 0) - node.size / 2,
-              width: node.size,
-              height: node.size,
-              opacity: selectedBubble && !isSelected ? 0.1 : undefined,
-              transition: "opacity 0.3s ease",
-              background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              onSelect(node.data);
-            }}
-          >
-            <img
-              src={node.data.imageUrl}
-              alt={`GNSS ${node.data.gnssNum}`}
-              loading="lazy"
-              decoding="async"
-              draggable={false}
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                borderRadius: "50%",
-              }}
-            />
-            {node.data.memCount > 0 && (
-              <div className="bubble-count">{node.data.memCount}</div>
-            )}
-          </div>
-        );
-      })}
-      {/* MEM Bubbles - shown when a GNSS is selected */}
+      {nodes.map((node) => (
+        <GnssBubble
+          key={node.data.gnssNum}
+          node={node}
+          isSelected={selectedBubble?.gnssNum === node.data.gnssNum}
+          isFaded={!!selectedBubble && selectedBubble.gnssNum !== node.data.gnssNum}
+          onSelect={onSelect}
+        />
+      ))}
+      {/* MEM Bubbles */}
       {memNodes.map((memNode, index) => (
-        <div
-          key={`mem-${index}`}
-          className="bubble mem-bubble"
-          style={{
-            position: "absolute",
-            left: (memNode.x ?? 0) - memNode.size / 2,
-            top: (memNode.y ?? 0) - memNode.size / 2,
-            width: memNode.size,
-            height: memNode.size,
-            zIndex: 100,
-            background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
-          }}
-          onClick={(e) => {
-            e.stopPropagation();
-            onMemClick(memNode.url);
-          }}
-        >
-          <img
-            src={memNode.url}
-            alt={`MEM ${index + 1}`}
-            loading="lazy"
-            decoding="async"
-            draggable={false}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              borderRadius: "50%",
-            }}
-          />
-        </div>
+        <MemBubble
+          key={memNode.url}
+          memNode={memNode}
+          index={index}
+          onMemClick={onMemClick}
+        />
       ))}
     </div>
   );
@@ -225,6 +266,10 @@ const BubbleViewMemo = () => {
   const addedBubblesRef = useRef<Set<string>>(new Set()); // Track which bubbles are already in simulation
   const addedMemsRef = useRef<Set<string>>(new Set()); // Track which MEMs are already in simulation
   const maxMassRef = useRef<number>(1); // Store maxMass for simulation forces
+  const lastTickRef = useRef<number>(0); // Throttle tick updates
+  const lastMemTickRef = useRef<number>(0); // Throttle MEM tick updates
+  const rafRef = useRef<number | null>(null); // requestAnimationFrame handle
+  const memRafRef = useRef<number | null>(null); // MEM requestAnimationFrame handle
   const [loadedMemUrls, setLoadedMemUrls] = useState<string[]>([]); // Progressively loaded MEM URLs
 
   const MEM_CONCURRENT = 4; // Concurrent MEM image loads
@@ -317,12 +362,20 @@ const BubbleViewMemo = () => {
           forceCollide<BubbleNode>()
             .radius((d) => d.size / 2 + 8)
             .strength(1)
-            .iterations(3)
+            .iterations(2) // Reduced for performance
         )
         .alphaDecay(0.008)
         .velocityDecay(0.2)
         .on("tick", () => {
-          setNodes([...simulation.nodes()]);
+          // Throttle state updates to ~60fps using requestAnimationFrame
+          const now = performance.now();
+          if (now - lastTickRef.current >= TICK_THROTTLE_MS) {
+            lastTickRef.current = now;
+            if (rafRef.current) cancelAnimationFrame(rafRef.current);
+            rafRef.current = requestAnimationFrame(() => {
+              setNodes([...simulation.nodes()]);
+            });
+          }
         });
 
       simulationRef.current = simulation;
@@ -375,6 +428,8 @@ const BubbleViewMemo = () => {
         simulationRef.current.stop();
         addedBubblesRef.current.clear();
       }
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      if (memRafRef.current) cancelAnimationFrame(memRafRef.current);
     };
   }, []);
 
@@ -532,7 +587,15 @@ const BubbleViewMemo = () => {
         .alphaDecay(0.02)
         .velocityDecay(0.4)
         .on("tick", () => {
-          setMemNodes([...memSimulation.nodes()]);
+          // Throttle state updates to ~60fps using requestAnimationFrame
+          const now = performance.now();
+          if (now - lastMemTickRef.current >= TICK_THROTTLE_MS) {
+            lastMemTickRef.current = now;
+            if (memRafRef.current) cancelAnimationFrame(memRafRef.current);
+            memRafRef.current = requestAnimationFrame(() => {
+              setMemNodes([...memSimulation.nodes()]);
+            });
+          }
         });
 
       memSimulationRef.current = memSimulation;
