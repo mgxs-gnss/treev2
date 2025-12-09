@@ -114,7 +114,7 @@ const BubbleCanvas = memo(function BubbleCanvas({
   const { setTransform } = useControls();
   const selectedNode = nodes.find((n) => n.data.gnssNum === selectedBubble?.gnssNum);
 
-  // Center on selected bubble
+  // Center on selected bubble - fast animation
   useEffect(() => {
     if (selectedNode) {
       const x = selectedNode.x ?? window.innerWidth / 2;
@@ -122,7 +122,7 @@ const BubbleCanvas = memo(function BubbleCanvas({
       // Center the view on the selected bubble
       const newX = window.innerWidth / 2 - x;
       const newY = window.innerHeight / 2 - y;
-      setTransform(newX, newY, 1, 500, "easeOut");
+      setTransform(newX, newY, 1, 200, "easeOut"); // Fast 200ms animation
     }
   }, [selectedNode, setTransform]);
 
@@ -406,7 +406,22 @@ const BubbleViewMemo = () => {
   }, []);
 
   const handleSelect = useCallback((data: BubbleData) => {
-    setSelectedBubble((prev) => (prev?.gnssNum === data.gnssNum ? null : data));
+    setSelectedBubble((prev) => {
+      const isDeselecting = prev?.gnssNum === data.gnssNum;
+      if (isDeselecting) {
+        // Restart simulation when deselecting
+        if (simulationRef.current) {
+          simulationRef.current.alpha(0.3).restart();
+        }
+        return null;
+      } else {
+        // Stop simulation when selecting
+        if (simulationRef.current) {
+          simulationRef.current.stop();
+        }
+        return data;
+      }
+    });
   }, []);
 
   // Progressively load MEM images when a bubble is selected
@@ -562,11 +577,15 @@ const BubbleViewMemo = () => {
     }
   }, [selectedBubble, selectedNode, loadedMemUrls]);
 
-  // Handle container click - close selection or reheat simulation
+  // Handle container click - close selection and restart simulation
   const handleContainerClick = useCallback((e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
       if (selectedBubble) {
         setSelectedBubble(null);
+        // Restart simulation when deselecting
+        if (simulationRef.current) {
+          simulationRef.current.alpha(0.3).restart();
+        }
       } else if (simulationRef.current) {
         simulationRef.current.alpha(0.1).restart();
       }
