@@ -223,7 +223,21 @@ const BubbleViewMemo = () => {
   const simulationRef = useRef<ReturnType<typeof forceSimulation<BubbleNode>> | null>(null);
   const memSimulationRef = useRef<ReturnType<typeof forceSimulation<MemNode>> | null>(null);
   const addedBubblesRef = useRef<Set<string>>(new Set()); // Track which bubbles are already in simulation
+  const addedMemsRef = useRef<Set<string>>(new Set()); // Track which MEMs are already in simulation
   const maxMassRef = useRef<number>(1); // Store maxMass for simulation forces
+  const [loadedMemUrls, setLoadedMemUrls] = useState<string[]>([]); // Progressively loaded MEM URLs
+
+  const MEM_CONCURRENT = 4; // Concurrent MEM image loads
+
+  // Preload a single image
+  const preloadImage = useCallback((url: string): Promise<void> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve();
+      img.onerror = () => resolve();
+      img.src = url;
+    });
+  }, []);
 
   // Calculate bubble size based on MEM count
   const calculateSize = useCallback(
@@ -395,21 +409,61 @@ const BubbleViewMemo = () => {
     setSelectedBubble((prev) => (prev?.gnssNum === data.gnssNum ? null : data));
   }, []);
 
+  // Progressively load MEM images when a bubble is selected
+  useEffect(() => {
+    if (!selectedBubble) {
+      setLoadedMemUrls([]);
+      addedMemsRef.current.clear();
+      return;
+    }
+
+    const memUrls = selectedBubble.memUrls;
+    if (memUrls.length === 0) return;
+
+    let aborted = false;
+    const loaded: string[] = [];
+    let currentIndex = 0;
+
+    const loadNext = async (): Promise<void> => {
+      while (currentIndex < memUrls.length && !aborted) {
+        const index = currentIndex++;
+        const url = memUrls[index];
+        await preloadImage(url);
+        if (aborted) return;
+        loaded.push(url);
+        setLoadedMemUrls([...loaded]);
+      }
+    };
+
+    // Start concurrent loaders
+    const loaders = Array.from(
+      { length: Math.min(MEM_CONCURRENT, memUrls.length) },
+      () => loadNext()
+    );
+
+    Promise.all(loaders);
+
+    return () => {
+      aborted = true;
+    };
+  }, [selectedBubble, preloadImage]);
+
   // Get the position of the selected bubble
   const selectedNode = nodes.find((n) => n.data.gnssNum === selectedBubble?.gnssNum);
 
-  // Create MEM bubble simulation when a bubble is selected
+  // Create MEM bubble simulation with progressive loading
   useEffect(() => {
-    // Clean up previous simulation
-    if (memSimulationRef.current) {
-      memSimulationRef.current.stop();
-      memSimulationRef.current = null;
-    }
-
     if (!selectedBubble || !selectedNode) {
+      // Clean up when deselected
+      if (memSimulationRef.current) {
+        memSimulationRef.current.stop();
+        memSimulationRef.current = null;
+      }
       setMemNodes([]);
       return;
     }
+
+    if (loadedMemUrls.length === 0) return;
 
     const centerX = selectedNode.x ?? window.innerWidth / 2;
     const centerY = selectedNode.y ?? window.innerHeight / 2;
@@ -417,73 +471,96 @@ const BubbleViewMemo = () => {
 
     // Minimum distance from center to not cover parent bubble
     const minOrbitRadius = parentRadius + MEM_BUBBLE_SIZE / 2 + 15;
-    // Target orbit distance based on MEM count
+    // Target orbit distance based on total MEM count
     const targetOrbitRadius = minOrbitRadius + Math.min(selectedBubble.memUrls.length * 4, 100);
 
-    // Create MEM nodes around the selected bubble
-    const initialMemNodes: MemNode[] = selectedBubble.memUrls.map((url, i) => {
-      const angle = (i / selectedBubble.memUrls.length) * Math.PI * 2;
+    // Find new MEMs that haven't been added yet
+    const newMemUrls = loadedMemUrls.filter((url) => !addedMemsRef.current.has(url));
 
-      return {
-        url,
-        size: MEM_BUBBLE_SIZE,
-        x: centerX + Math.cos(angle) * targetOrbitRadius,
-        y: centerY + Math.sin(angle) * targetOrbitRadius,
-        vx: -Math.sin(angle) * 0.5, // Slower initial velocity
-        vy: Math.cos(angle) * 0.5,
-      };
-    });
+    // If no simulation exists, create it
+    if (!memSimulationRef.current) {
+      // Create initial MEM nodes
+      const initialMemNodes: MemNode[] = newMemUrls.map((url, i) => {
+        const angle = (i / Math.max(selectedBubble.memUrls.length, 1)) * Math.PI * 2;
+        addedMemsRef.current.add(url);
 
-    // Create simulation for MEM bubbles - soft and gentle
-    const memSimulation = forceSimulation<MemNode>(initialMemNodes)
-      .force("x", forceX(centerX).strength(0.01)) // Gentle center pull
-      .force("y", forceY(centerY).strength(0.01))
-      .force(
-        "charge",
-        forceManyBody<MemNode>().strength(-30).distanceMax(150) // Softer repulsion
-      )
-      .force(
-        "collide",
-        forceCollide<MemNode>()
-          .radius((d) => d.size / 2 + 3)
-          .strength(0.8)
-      )
-      .force(
-        "orbit",
-        () => {
-          // Keep MEMs in orbit - push away if too close to parent
-          initialMemNodes.forEach((node) => {
-            const dx = (node.x ?? 0) - centerX;
-            const dy = (node.y ?? 0) - centerY;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-
-            // Push away if too close to parent bubble
-            if (dist < minOrbitRadius && dist > 0) {
-              const pushFactor = ((minOrbitRadius - dist) / dist) * 0.1;
-              node.vx = (node.vx ?? 0) + dx * pushFactor;
-              node.vy = (node.vy ?? 0) + dy * pushFactor;
-            }
-            // Gentle pull toward target orbit
-            else if (dist > 0) {
-              const factor = ((targetOrbitRadius - dist) / dist) * 0.005;
-              node.vx = (node.vx ?? 0) + dx * factor;
-              node.vy = (node.vy ?? 0) + dy * factor;
-            }
-          });
-        }
-      )
-      .alphaDecay(0.02) // Faster settling
-      .velocityDecay(0.4) // More damping for softer movement
-      .on("tick", () => {
-        setMemNodes([...memSimulation.nodes()]);
+        return {
+          url,
+          size: MEM_BUBBLE_SIZE,
+          x: centerX + Math.cos(angle) * targetOrbitRadius,
+          y: centerY + Math.sin(angle) * targetOrbitRadius,
+          vx: -Math.sin(angle) * 0.5,
+          vy: Math.cos(angle) * 0.5,
+        };
       });
 
-    memSimulationRef.current = memSimulation;
+      // Create simulation for MEM bubbles
+      const memSimulation = forceSimulation<MemNode>(initialMemNodes)
+        .force("x", forceX(centerX).strength(0.01))
+        .force("y", forceY(centerY).strength(0.01))
+        .force(
+          "charge",
+          forceManyBody<MemNode>().strength(-30).distanceMax(150)
+        )
+        .force(
+          "collide",
+          forceCollide<MemNode>()
+            .radius((d) => d.size / 2 + 3)
+            .strength(0.8)
+        )
+        .force(
+          "orbit",
+          () => {
+            // Keep MEMs in orbit - push away if too close to parent
+            memSimulation.nodes().forEach((node) => {
+              const dx = (node.x ?? 0) - centerX;
+              const dy = (node.y ?? 0) - centerY;
+              const dist = Math.sqrt(dx * dx + dy * dy);
 
-    return () => {
-      memSimulation.stop();
-    };
-  }, [selectedBubble, selectedNode]);
+              if (dist < minOrbitRadius && dist > 0) {
+                const pushFactor = ((minOrbitRadius - dist) / dist) * 0.1;
+                node.vx = (node.vx ?? 0) + dx * pushFactor;
+                node.vy = (node.vy ?? 0) + dy * pushFactor;
+              } else if (dist > 0) {
+                const factor = ((targetOrbitRadius - dist) / dist) * 0.005;
+                node.vx = (node.vx ?? 0) + dx * factor;
+                node.vy = (node.vy ?? 0) + dy * factor;
+              }
+            });
+          }
+        )
+        .alphaDecay(0.02)
+        .velocityDecay(0.4)
+        .on("tick", () => {
+          setMemNodes([...memSimulation.nodes()]);
+        });
+
+      memSimulationRef.current = memSimulation;
+    } else if (newMemUrls.length > 0) {
+      // Add new MEMs to existing simulation
+      const memSimulation = memSimulationRef.current;
+      const existingNodes = memSimulation.nodes();
+
+      // Create new nodes - spawn from random angles around orbit
+      const newNodes: MemNode[] = newMemUrls.map((url) => {
+        const angle = Math.random() * Math.PI * 2;
+        addedMemsRef.current.add(url);
+
+        return {
+          url,
+          size: MEM_BUBBLE_SIZE,
+          x: centerX + Math.cos(angle) * (targetOrbitRadius + 50),
+          y: centerY + Math.sin(angle) * (targetOrbitRadius + 50),
+          vx: -Math.cos(angle) * 0.3,
+          vy: -Math.sin(angle) * 0.3,
+        };
+      });
+
+      // Add new nodes to simulation
+      memSimulation.nodes([...existingNodes, ...newNodes]);
+      memSimulation.alpha(0.3).restart();
+    }
+  }, [selectedBubble, selectedNode, loadedMemUrls]);
 
   // Handle container click - close selection or reheat simulation
   const handleContainerClick = useCallback((e: React.MouseEvent) => {
