@@ -1,7 +1,6 @@
 import { JSONData, Mems } from "interfaces";
 import { useSearchParams } from "react-router-dom";
 import { ReactZoomPanPinchState, TransformComponent } from "react-zoom-pan-pinch";
-import { getColumns } from "../utils";
 import { UI } from "./UI";
 import React, { useMemo } from "react";
 
@@ -73,7 +72,9 @@ const ZoomContainer = React.memo(
   }: Props) => {
     const [search] = useSearchParams();
     const isHome = search.has("home");
-    const columns = getColumns();
+
+    // Calculate columns directly from imageCount (square grid)
+    const columns = useMemo(() => Math.ceil(Math.sqrt(imageCount)) + 1, [imageCount]);
 
     // Calculate visible range based on transform state
     const visibleItems = useMemo(() => {
@@ -195,7 +196,7 @@ const ZoomContainer = React.memo(
               zIndex: 1000,
             }}
           >
-            Visible: {visibleItems.length} / {imageCount}
+            Grid: {columns}x{Math.ceil(imageCount / columns)} | Visible: {visibleItems.length} / {imageCount}
           </div>
         )}
       </>
