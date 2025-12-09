@@ -1,4 +1,3 @@
-import { useTheme } from "@mui/material";
 import { JSONData, Mems } from "interfaces";
 import { useSearchParams } from "react-router-dom";
 import { ReactZoomPanPinchState, TransformComponent } from "react-zoom-pan-pinch";
@@ -30,20 +29,12 @@ const ZoomContainer = React.memo(
   }: Props) => {
     const [search] = useSearchParams();
     const isHome = search.has("home");
-    const theme = useTheme();
 
-    const { visibleIndices, visibleItems, scale } = useViewportVirtualization({
+    const { visibleItems, scale } = useViewportVirtualization({
       totalImages: imageCount,
       transformState,
       buffer: 3,
     });
-
-    // Create a map for quick lookup of visible item info
-    const visibleItemMap = useMemo(() => {
-      const map = new Map<number, (typeof visibleItems)[0]>();
-      visibleItems.forEach((item) => map.set(item.index, item));
-      return map;
-    }, [visibleItems]);
 
     // Get image URL by index
     const getImageUrl = useCallback(
@@ -59,45 +50,69 @@ const ZoomContainer = React.memo(
 
     const columns = getColumns();
 
-    // Memoize the grid items to prevent unnecessary re-renders
+    // Only render visible items - true virtualization
+    // Calculate grid dimensions
     const gridItems = useMemo(() => {
-      return images.map((image, index) => {
-        const isVisible = visibleIndices.has(index);
+      const cellWidth = 576 + 40; // IMAGE_WIDTH + GAP
+      const cellHeight = 768 + 40; // IMAGE_HEIGHT + GAP
+
+      // Only render items that are visible
+      return visibleItems.map((item) => {
+        const { index, row, col, lodLevel } = item;
+        const image = images[index];
+        if (!image) return null;
+
         const { url } = image;
-
-        if (!isVisible) {
-          // Render placeholder to maintain grid structure
-          return <div key={url} className="mem" style={{ visibility: "hidden" }} />;
-        }
-
-        const itemInfo = visibleItemMap.get(index);
-        const lodLevel = itemInfo?.lodLevel ?? 1;
         const loadedState = getLoadedState(index);
         const loading = isLoading(index);
 
+        // Position absolutely within the grid
+        const left = col * cellWidth;
+        const top = row * cellHeight;
+
         return (
-          <MemoizedMem
+          <div
             key={url}
-            index={url}
-            src={url}
-            isHome={isHome}
-            active={isHome ? undefined : highlightedIndex === url}
-            lodLevel={lodLevel}
-            loadedLowRes={loadedState?.lowRes}
-            loadedHighRes={loadedState?.highRes}
-            isLoading={loading}
-          />
+            style={{
+              position: "absolute",
+              left,
+              top,
+              width: 576,
+              height: 768,
+            }}
+          >
+            <MemoizedMem
+              index={url}
+              src={url}
+              isHome={isHome}
+              active={isHome ? undefined : highlightedIndex === url}
+              lodLevel={lodLevel}
+              loadedLowRes={loadedState?.lowRes}
+              loadedHighRes={loadedState?.highRes}
+              isLoading={loading}
+            />
+          </div>
         );
       });
     }, [
+      visibleItems,
       images,
-      visibleIndices,
-      visibleItemMap,
       isHome,
       highlightedIndex,
       getLoadedState,
       isLoading,
     ]);
+
+    // Calculate total grid size for container
+    const totalGridSize = useMemo(() => {
+      const cellWidth = 576 + 40;
+      const cellHeight = 768 + 40;
+      const rows = Math.ceil(imageCount / columns);
+      return {
+        width: columns * cellWidth,
+        height: rows * cellHeight,
+      };
+    }, [imageCount, columns]);
 
     return (
       <>
@@ -111,11 +126,10 @@ const ZoomContainer = React.memo(
         <TransformComponent>
           <div
             style={{
-              display: "grid",
+              position: "relative",
               willChange: "transform",
-              gridTemplateColumns: `repeat(${columns}, 1fr)`,
-              gap: theme.spacing(5),
-              width: "100%",
+              width: totalGridSize.width,
+              height: totalGridSize.height,
             }}
           >
             {gridItems}
