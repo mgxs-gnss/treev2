@@ -139,6 +139,7 @@ const BubbleCanvas = memo(function BubbleCanvas({
       {/* GNSS Bubbles */}
       {nodes.map((node) => {
         const isSelected = selectedBubble?.gnssNum === node.data.gnssNum;
+        const isDisabled = selectedBubble && !isSelected; // Can't click other bubbles when one is selected
         return (
           <div
             key={node.data.gnssNum}
@@ -149,7 +150,8 @@ const BubbleCanvas = memo(function BubbleCanvas({
               top: (node.y ?? 0) - node.size / 2,
               width: node.size,
               height: node.size,
-              opacity: selectedBubble && !isSelected ? 0.1 : undefined,
+              opacity: isDisabled ? 0.1 : undefined,
+              pointerEvents: isDisabled ? "none" : undefined, // Disable clicks on other bubbles
               transition: "opacity 0.3s ease",
               background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
             }}
